@@ -1,0 +1,15 @@
+<html>
+    <head>
+        {% if title %}
+        <title>{{ title }} - Repetiton</title>
+        {% else %}
+        <title>Welcome to Repetition</title>
+        {% endif %}
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+        <div>Repetition: <a href="/decks">Decks</a></div>
+        <hr>
+        {% block content %}{% endblock %}
+    </body>
+</html>

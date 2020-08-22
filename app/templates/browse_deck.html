@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{{ deck.name }} - all cards</h1>
+    {% for c in deck.cards %}
+    <div>
+        <h2>{{ c.zi_simp }}</h2>
+        <p>{{ c.pinyin_tone }}</p>
+        <p>{{ c.english }}</p>
+    </div>
+    {% endfor %}
+{% endblock %}

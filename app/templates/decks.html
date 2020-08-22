@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Decks</h1>
+    {% for d in decks %}
+    <div>
+        <a href={{ url_for('browse_deck', id=d.id) }}>{{ d.name }}</a>
+    </div>
+    {% endfor %}
+{% endblock %}
