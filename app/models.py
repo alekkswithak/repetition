@@ -33,12 +33,20 @@ class Card(db.Model, Base):
         self.ease *= self.deck.multiplier
         self.priority = False
         self.last_time = datetime.now()
+        if self in self.deck.unseen_cards:
+            self.deck.unseen_cards.remove(self)
+            self.deck.seen_cards.append(self)
+        self.deck.active_card_id = None
         db.session.commit()
     
     def unknown(self):
         self.ease /= self.deck.multiplier
         self.priority = True
         self.last_time = datetime.now()
+        if self in self.deck.unseen_cards:
+            self.deck.unseen_cards.remove(self)
+            self.deck.seen_cards.append(self)
+        self.deck.active_card_id = None
         db.session.commit()
 
 
@@ -46,19 +54,15 @@ class Deck(db.Model):
     __tablename__ = 'deck'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
-    cards = db.relationship('Card', back_populates='deck')
     card_number = db.Column(db.Integer, default=20)  # new cards per go
     card_counter = db.Column(db.Integer, default=0)
     multiplier = db.Column(db.Integer, default=2)  # ease multiplier
     entry_interval = db.Column(db.Integer, default=5)  # new card entry
     last_date = db.Column(db.Date, default=None)
 
-    seen_cards = []
-    unseen_cards = []
-
-    def organise_cards(self):
-        self.seen_cards = [c for c in self.cards if c.last_time is not None]
-        self.unseen_cards = [c for c in self.cards if c.last_time is None]
+    seen_cards = db.relationship('Card', back_populates='deck')
+    unseen_cards = db.relationship('Card', back_populates='deck')
+    active_card_id = db.Column(db.Integer, default=None)
         
     def __repr__(self):
         return '<Deck "{}">'.format(self.name)
@@ -68,22 +72,16 @@ class Deck(db.Model):
     
     def get_seen_card(self):
         if self.seen_cards:
-            return self.seen_cards.pop(
-                min(self.seen_cards, key=lambda c: c.ease)
-            )
-    
+            return min(self.seen_cards, key=lambda c: c.ease)
+            
     def get_unseen_card(self):
         if self.unseen_cards:
-            return self.unseen_cards.pop(
-                min(self.unseen_cards, key=lambda c: c.ease)
-            )
+            return min(self.unseen_cards, key=lambda c: c.ease)
 
     def get_priority_card(self):
         cards = [c for c in self.seen_cards if c.priority]
         if cards:
-            return self.seen_cards.pop(
-                min(cards, key=lambda c: c.ease)
-            )
+            return min(cards, key=lambda c: c.ease)
         
     def get_next_card(self):
         if self.card_counter >= self.entry_interval:
@@ -98,11 +96,11 @@ class Deck(db.Model):
         return card
     
     def play(self):
-        if not self.seen_cards and not self.unseen_cards:
-            self.organise_cards()
-        if len(self.seen_cards) <= self.card_number:
-            return self.get_unseen_card()
-        return self.get_next_card()
+        if self.active_card_id is None:
+            if len(self.seen_cards) <= self.card_number:
+                self.active_card_id = self.get_unseen_card().id
+            else:
+                self.active_card.id = self.get_next_card().id
         
 
 class Word(Card):

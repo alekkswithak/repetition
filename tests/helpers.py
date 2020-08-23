@@ -35,7 +35,7 @@ def make_test_deck():
         deck = Deck(name='Test', card_number=4)
         for w in words:
             db.session.add(w)
-            deck.cards.append(w)
+            deck.unseen_cards.append(w)
     db.session.add(deck)
     db.session.commit()
     return deck
@@ -46,7 +46,7 @@ def make_decks():
     decks = {n: Deck(name='HSK{}'.format(n)) for n in range(1, 7)}
 
     for w in words:
-        decks[w.hsk].cards.append(w)
+        decks[w.hsk].unseen_cards.append(w)
     for _, d in decks.items():
         db.session.add(d)
     db.session.commit()

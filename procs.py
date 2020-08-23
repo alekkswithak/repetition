@@ -30,7 +30,7 @@ def read_hsk():
                     'pinyin_tone': data[3],
                     'english': data[4],
                     'hsk': x,
-                }              
+                }
                 # db magic here
                 w = Word(**fields)
                 db.session.add(w)
@@ -42,7 +42,7 @@ def make_decks():
     decks = {n: Deck(name='HSK{}'.format(n)) for n in range(1, 7)}
 
     for w in words:
-        decks[w.hsk].cards.append(w)
+        decks[w.hsk].unseen_cards.append(w)
     for _, d in decks.items():
         db.session.add(d)
     db.session.commit()

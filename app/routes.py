@@ -17,6 +17,12 @@ def browse_deck(id):
     return render_template('browse_deck.html', deck=deck)
 
 
+@app.route('/deck/<id>')
+def play_deck(id):
+    deck = Deck.query.get(id)
+    return render_template('play_deck.html', deck=deck)
+
+
 @app.route('/deck_browse/')
 def browse_cards():
     deck = Deck.query.filter_by(name='HSK6')[0]
