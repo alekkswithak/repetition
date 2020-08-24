@@ -42,7 +42,7 @@ def make_decks():
     decks = {n: Deck(name='HSK{}'.format(n)) for n in range(1, 7)}
 
     for w in words:
-        decks[w.hsk].unseen_cards.append(w)
+        decks[w.hsk].cards.append(w)
     for _, d in decks.items():
         db.session.add(d)
     db.session.commit()

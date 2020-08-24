@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{{ card.deck.name }} - all cards</h1>
+    <p>{{ card.deck.card_counter }}</p>
+    <div>
+        <h2>{{ card.zi_simp }}</h2>
+        <p>{{ card.pinyin_tone }}</p>
+        <p>{{ card.english }}</p>
+        <p>{{ card.ease }}</p>
+    </div>
+    <a href="{{ url_for('evaluate_card', card_id=card.id, known=1) }}">Know</a>
+    <a href="{{ url_for('evaluate_card', card_id=card.id, known=0) }}">Don't Know</a>
+
+{% endblock %}
