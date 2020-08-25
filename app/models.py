@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.orderinglist import ordering_list
 from datetime import datetime, timedelta
 import math
+from collections import defaultdict
 
 Base = declarative_base()
 
@@ -21,6 +22,7 @@ class Card(db.Model, Base):
     ease = db.Column(db.Integer, default=1)
     last_time = db.Column(db.DateTime, default=None)
     priority = db.Column(db.Boolean, default=False)
+    learning = db.Column(db.Boolean, default=False)
     deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
     deck = db.relationship('Deck', back_populates='cards')
 
@@ -58,7 +60,18 @@ class Deck(db.Model):
 
     cards = db.relationship('Card', back_populates='deck')
     active_card_id = db.Column(db.Integer, default=None)
-        
+
+    def shuffle(self):
+        max_ease = max(self.seen_cards, key=lambda c: c.ease).ease
+        max_time = max(self.seen_cards, key=lambda c: c.last_time).last_time
+        min_time = min(self.seen_cards, key=lambda c: c.last_time).last_time
+        delta = max_time - min_time
+
+        delta_cards = defaultdict(list)
+        for c in self.cards:
+            delta = (min_time - c.last_time).total_seconds()
+            delta_cards[delta*c.ease].append(c)
+
     def __repr__(self):
         return '<Deck "{}">'.format(self.name)
 
