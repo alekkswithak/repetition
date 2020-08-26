@@ -37,7 +37,7 @@ def evaluate_card(card_id, known):
         print('unknown')
         card.unknown()
     return redirect(url_for('play_deck', deck_id=card.deck.id))
-    
+
 
 @app.route('/deck_browse/')
 def browse_cards():

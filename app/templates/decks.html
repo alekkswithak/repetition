@@ -4,7 +4,9 @@
     <h1>Decks</h1>
     {% for d in decks %}
     <div>
-        <a href={{ url_for('browse_deck', id=d.id) }}>{{ d.name }}</a>
+        <p>{{ d.name }} :</p>
+        <a href={{ url_for('browse_deck', id=d.id) }}>Browse</a>
+        <a href={{ url_for('play_deck', id=d.id) }}>Play</a>
     </div>
     {% endfor %}
 {% endblock %}
