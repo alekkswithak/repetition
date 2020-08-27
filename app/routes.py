@@ -25,17 +25,17 @@ def play_deck(deck_id):
     return render_template('play_deck.html', card=card)
 
 
-@app.route('/evaluate_card/<int:card_id>/<known>')
-def evaluate_card(card_id, known):
+@app.route('/card_known/<int:card_id>')
+def card_known(card_id):
     card = Card.query.get(card_id)
-    print(type(known))
-    print(known is False)
-    if known:
-        print('known')
-        card.known()
-    else:
-        print('unknown')
-        card.unknown()
+    card.known()
+    return redirect(url_for('play_deck', deck_id=card.deck.id))
+
+
+@app.route('/card_unknown/<int:card_id>')
+def card_unknown(card_id):
+    card = Card.query.get(card_id)
+    card.unknown()
     return redirect(url_for('play_deck', deck_id=card.deck.id))
 
 

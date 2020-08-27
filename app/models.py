@@ -22,7 +22,7 @@ class Card(db.Model, Base):
     ease = db.Column(db.Integer, default=1)
     last_time = db.Column(db.DateTime, default=None)
     priority = db.Column(db.Boolean, default=False)
-    learning = db.Column(db.Boolean, default=False)
+    learning = db.Column(db.Boolean, default=False) # for reprioritisation
     deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
     deck = db.relationship('Deck', back_populates='cards')
 
@@ -38,7 +38,7 @@ class Card(db.Model, Base):
         self.last_time = datetime.now()
         self.deck.active_card_id = None
         db.session.commit()
-    
+
     def unknown(self):
         print('unknown')
         self.ease /= self.deck.multiplier
@@ -69,8 +69,16 @@ class Deck(db.Model):
 
         delta_cards = defaultdict(list)
         for c in self.cards:
-            delta = (min_time - c.last_time).total_seconds()
-            delta_cards[delta*c.ease].append(c)
+            if c.last_time:
+                delta = (min_time - c.last_time).total_seconds()
+                delta_cards[delta*c.ease].append(c)
+
+        counter = 0
+        while counter < self.card_number:
+            for c in delta_cards[min(delta_cards)]:
+                c.learning = True
+                counter += 1
+            del delta_cards[min(delta_cards)]
 
     def __repr__(self):
         return '<Deck "{}">'.format(self.name)
@@ -78,7 +86,7 @@ class Deck(db.Model):
     def organise_cards(self):
         self.seen_cards = [c for c in self.cards if c.last_time is not None]
         self.unseen_cards = [c for c in self.cards if c.last_time is None]
-    
+
     def get_seen_card(self):
         if self.seen_cards:
             review_point = datetime.now() - timedelta(
@@ -97,7 +105,7 @@ class Deck(db.Model):
         cards = [c for c in self.seen_cards if c.priority]
         if cards:
             return min(cards, key=lambda c: c.ease)
-        
+
     def get_next_card(self):
         card = None
         if self.card_counter >= self.entry_interval:
@@ -112,7 +120,7 @@ class Deck(db.Model):
         if card is None:
             card = self.get_priority_card() or self.get_unseen_card()
         return card
-    
+
     def play(self):
         self.organise_cards()
         if self.active_card_id is None:
@@ -121,7 +129,7 @@ class Deck(db.Model):
             else:
                 self.active_card_id = self.get_next_card().id
         db.session.commit()
-        
+
 
 class Word(Card):
     __tablename__ = 'word'
