@@ -41,7 +41,11 @@ class Card(db.Model, Base):
 
     def unknown(self):
         print('unknown')
-        self.ease /= self.deck.multiplier
+        ease = self.ease / self.deck.multiplier
+        if ease > 1:
+            self.ease = math.floor(ease)
+        else:
+            ease = 1
         self.priority = True
         self.last_time = datetime.now()
         self.deck.active_card_id = None

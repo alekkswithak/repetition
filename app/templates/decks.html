@@ -5,8 +5,8 @@
     {% for d in decks %}
     <div>
         <p>{{ d.name }} :</p>
-        <a href={{ url_for('browse_deck', id=d.id) }}>Browse</a>
-        <a href={{ url_for('play_deck', id=d.id) }}>Play</a>
+        <a href={{ url_for('browse_deck', deck_id=d.id) }}>Browse</a>
+        <a href={{ url_for('play_deck', deck_id=d.id) }}>Play</a>
     </div>
     {% endfor %}
 {% endblock %}

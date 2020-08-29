@@ -1,5 +1,17 @@
 <html>
     <head>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script>
+            $(document).ready(function(){
+                $(".card-answer").hide();
+                $("#show-answer").click(function(){
+                    $(".card-answer").show();
+                    $("#show-answer").hide();
+                });
+            });
+        </script>
+
         {% if title %}
         <title>{{ title }} - Repetiton</title>
         {% else %}

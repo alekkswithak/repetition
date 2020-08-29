@@ -2,14 +2,18 @@
 
 {% block content %}
     <h1>{{ card.deck.name }} - all cards</h1>
-    <p>{{ card.deck.card_counter }}</p>
+    <p>Card Counter: {{ card.deck.card_counter }}</p>
     <div>
         <h2>{{ card.zi_simp }}</h2>
-        <p>{{ card.pinyin_tone }}</p>
-        <p>{{ card.english }}</p>
-        <p>{{ card.ease }}</p>
+        <div class="card-answer">
+            <p>{{ card.pinyin_tone }}</p>
+            <p>{{ card.english }}</p>
+            <a href="{{ url_for('card_known', card_id=card.id) }}">Know</a>
+            <a href="{{ url_for('card_unknown', card_id=card.id) }}">Don't Know</a>
+        </div>
+        <button id='show-answer'>Show Answer</button>
+        <p>Card Ease: {{ card.ease }}</p>
     </div>
-    <a href="{{ url_for('evaluate_card', card_id=card.id) }}">Know</a>
-    <a href="{{ url_for('evaluate_card', card_id=card.id) }}">Don't Know</a>
+
 
 {% endblock %}

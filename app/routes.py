@@ -11,8 +11,8 @@ def index():
     return render_template('decks.html', title='Home', user=user, decks=decks)
 
 
-@app.route('/deck/<id>')
-def browse_deck(id):
+@app.route('/deck/<int:deck_id>')
+def browse_deck(deck_id):
     deck = Deck.query.get(id)
     return render_template('browse_deck.html', deck=deck)
 
