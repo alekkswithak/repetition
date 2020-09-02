@@ -32,7 +32,7 @@ def make_test_deck():
                 'hsk': 6,
             }
             words.append(Word(**fields))
-        deck = Deck(name='Test', card_number=4)
+        deck = Deck(name='Test')
         for w in words:
             db.session.add(w)
             deck.cards.append(w)
@@ -50,4 +50,3 @@ def make_decks():
     for _, d in decks.items():
         db.session.add(d)
     db.session.commit()
-    
