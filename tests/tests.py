@@ -98,6 +98,23 @@ class DeckTests(unittest.TestCase):
         self.assertEqual(len(deck.unseen_cards), 2)
         self.assertEqual(len(deck.learning_cards), 20)
 
+    def test_stress_deck(self):
+        deck = Deck()
+        deck.cards.extend([
+            Card()
+            for _ in range(12000)
+        ])
+        print(len(deck.cards))
+        db.session.add(deck)
+        db.session.commit()
+        outcomes = [True for _ in range(12000)]
+        play_deck(deck, outcomes)
+        c = max(deck.cards, key=lambda c: c.ease)
+        self.assertEqual(c.ease, 1)
+        self.assertEqual(len(deck.seen_cards), 50)
+        self.assertEqual(len(deck.unseen_cards), 2)
+        self.assertEqual(len(deck.learning_cards), 20)
+
 
 def play_deck(deck, outcomes):
     """
@@ -113,6 +130,7 @@ def play_deck(deck, outcomes):
         elif out is False:
             card.unknown()
         played.append(card)
+        print(len(played))
 
     return played
 

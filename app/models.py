@@ -80,6 +80,7 @@ class Deck(db.Model):
                 c.learning = False
 
         counter = 0
+        #breakpoint()
         while counter < self.card_number:
             #print(len(delta_cards), counter)
             for c in delta_cards[min(delta_cards)]:
@@ -145,6 +146,7 @@ class Deck(db.Model):
         return card
 
     def play(self):
+        #breakpoint()
         self.organise_cards()
         if self.active_card_id is None:
             if len(self.seen_cards) < self.card_number:
@@ -159,8 +161,8 @@ class Deck(db.Model):
             else:
                 self.active_card_id = self.get_next_card().id
             # print(self.shuffle_counter, len(self.seen_cards))
-
-        db.session.commit()
+        if self.shuffle_counter == 0:
+            db.session.commit()
 
 
 class Word(Card):
