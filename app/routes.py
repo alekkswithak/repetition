@@ -1,9 +1,28 @@
-from flask import render_template, redirect, url_for
+from flask import render_template, redirect, url_for, request
 from app import app
 from app.models import Deck, Card
 
 
 @app.route('/')
+def flash():
+    deck = Deck.query.filter_by(name='HSK6')[0]
+    deck_cards = deck.cards[500:520]
+    cards = []
+    i = 0
+    for c in deck_cards:
+        tc = c.get_dict()
+        tc['i'] = i
+        i += 1
+        cards.append(tc)
+
+    return render_template('test_flash.html', cards=cards)
+
+@app.route('/process_game', methods=['GET', 'POST'])
+def process_game():
+    req = request
+    breakpoint()
+
+#@app.route('/')
 @app.route('/index')
 def index():
     user = {'username': '学生'}

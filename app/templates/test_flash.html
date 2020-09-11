@@ -1,0 +1,83 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+
+
+{% for c in cards %}
+  <div id="ele-{{ c.i }}" style="display: none;">
+    <div id="card-id-{{ c.i }}" style="display: none;" >{{ c.id }}</div>
+    <h1>{{ c.questions[0] }}</h1>
+    <h2>{{ c.questions[1] }}</h2>
+        <div id="card-answer-{{ c.i }}" style="display: none;">
+            <p>{{ c.answers[0] }}</p>
+            <p>{{ c.answers[1] }}</p>
+        </div>
+        <button id='show-answer'>Show Answer</button>
+        <p>Card id: {{ c.id }}</p>
+  </div>
+{% endfor %}
+
+
+<script>
+  var counter = 0
+  var dict = {}
+  var shown = false
+
+  function showDiv(data) {
+    $("#ele-" + data).show();
+    hideElement(20, data);
+  }
+
+  function hideElement(total, active) {
+    for (i = 0; i <= total; i++) {
+      if (i != active)
+        $("#ele-" + i).hide();
+    }
+  }
+
+  function hideAnswers(total, active) {
+    for (i = 0; i <= total; i++) {
+      if (i != active)
+        $("#card-answer-" + i).hide();
+    }
+    $("div[id*='card-answer']").each(function (i, el) {
+         $('#'+el.id).hide()
+     });
+  }
+
+  $(document).ready(function(){
+    showDiv(counter);
+});
+
+  document.addEventListener("keypress", function onPress(event) {
+    if (event.key === "z") {
+        counter++;
+        console.log(counter);
+        console.log(dict);
+        id = $("#card-id-" + counter).text()
+        dict[id] = 'z'
+        $('#card-answer-'+counter).hide();
+        showDiv(counter);
+    } else if (event.key === "x") {
+      counter++;
+        console.log(counter);
+        console.log(dict);
+        id = $("#card-id-" + counter).text()
+        dict[id] = 'x'
+        $('#card-answer-'+counter).hide();
+        showDiv(counter);
+    } else if (event.key === "s") {
+        $('#card-answer-'+counter).show()
+    }
+    if (counter === 4) {
+      fetch("{{ url_for('process_game') }}", {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dict)
+      }).then(res => {
+        console.log("Request complete! response:", res);
+      });
+    }
+});
+</script>

@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.orderinglist import ordering_list
 from datetime import datetime, timedelta
 import math
+import abc
 from collections import defaultdict
 
 Base = declarative_base()
@@ -15,6 +16,7 @@ Base = declarative_base()
 
 
 class Card(db.Model, Base):
+    __metaclass__ = abc.ABCMeta
     __tablename__ = 'card'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
@@ -30,6 +32,21 @@ class Card(db.Model, Base):
         'polymorphic_identity': 'card',
         'polymorphic_on': type
     }
+
+    @abc.abstractmethod
+    def get_questions(self):
+        return
+
+    @abc.abstractmethod
+    def get_answers(self):
+        return
+
+    def get_dict(self):
+        return {
+            'id': self.id,
+            'questions': self.get_questions(),
+            'answers': self.get_answers()
+        }
 
     def known(self):
         self.ease *= self.deck.multiplier
