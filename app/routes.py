@@ -6,7 +6,7 @@ from app.models import Deck, Card
 @app.route('/')
 def flash():
     deck = Deck.query.filter_by(name='HSK6')[0]
-    deck_cards = deck.cards[500:520]
+    deck_cards = deck.get_learning_cards()
     cards = []
     i = 0
     for c in deck_cards:
@@ -15,12 +15,17 @@ def flash():
         i += 1
         cards.append(tc)
 
-    return render_template('test_flash.html', cards=cards)
+    return render_template('test_flash.html', cards=cards, deck_id=deck.id)
 
 @app.route('/process_game', methods=['GET', 'POST'])
 def process_game():
-    req = request
-    breakpoint()
+
+    received = request.json
+    deck_id = received['deck_id']
+    deck = Deck.query.get(deck_id)
+
+    # breakpoint()
+    print(received)
 
 #@app.route('/')
 @app.route('/index')

@@ -50,7 +50,10 @@ class Card(db.Model, Base):
 
     def known(self):
         self.ease *= self.deck.multiplier
-        self.priority = False
+        if self.priority is True:
+            self.priority = False
+        else:
+            self.learning = False
         self.last_time = datetime.now()
         self.deck.active_card_id = None
         #db.session.commit()
@@ -71,7 +74,8 @@ class Deck(db.Model):
     __tablename__ = 'deck'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
-    card_number = db.Column(db.Integer, default=20)  # new cards per go
+    card_number = db.Column(db.Integer, default=20)  # old cards per go and intial number of cards
+    new_card_number = db.Column(db.Integer, default=10)  # new cards per go
     card_counter = db.Column(db.Integer, default=0)
     shuffle_interval = db.Column(db.Integer, default=20)
     shuffle_counter = db.Column(db.Integer, default=0)
@@ -83,17 +87,22 @@ class Deck(db.Model):
     active_card_id = db.Column(db.Integer, default=None)
 
     def shuffle(self):
+        self.organise_cards()
+        if len(self.seen_cards) == 0:
+            for c in self.unseen_cards[0:self.card_number]:
+                c.learning = True
+            return
         #max_ease = max(self.seen_cards, key=lambda c: c.ease).ease
         #max_time = max(self.seen_cards, key=lambda c: c.last_time).last_time
         min_time = min(self.seen_cards, key=lambda c: c.last_time).last_time
         #delta = max_time - min_time
 
         delta_cards = defaultdict(list)
-        for c in self.cards:
-            if c.last_time:
-                delta = (c.last_time - min_time).total_seconds()
-                delta_cards[delta*c.ease].append(c)
-                #print(delta)
+        for c in self.seen_cards:
+            delta = (c.last_time - min_time).total_seconds()
+            delta_cards[delta*c.ease].append(c)
+            #print(delta)
+            if not c.priority:
                 c.learning = False
 
         counter = 0
@@ -105,13 +114,25 @@ class Deck(db.Model):
                 counter += 1
             del delta_cards[min(delta_cards)]
 
+
+        for c in self.unseen_cards[0:self.new_card_number]:
+            c.learning = True
+
     def __repr__(self):
         return '<Deck "{}">'.format(self.name)
+
+    def get_learning_cards(self):
+        if len([c for c in self.cards if c.learning]) == 0:
+            self.shuffle()
+        return [c for c in self.cards if c.learning]
+
+    def get_priority_cards(self):
+        return [c for c in self.seen_cards if c.priority]
 
     def organise_cards(self):
         self.seen_cards = [c for c in self.cards if c.last_time is not None]
         self.unseen_cards = [c for c in self.cards if c.last_time is None]
-        if self.shuffle_counter == self.card_number:
+        if self.shuffle_counter == self.card_number + self.new_card_number:
             self.shuffle()
             self.shuffle_counter = 0
         self.learning_cards = [c for c in self.cards if c.learning]
@@ -162,7 +183,7 @@ class Deck(db.Model):
             card = self.get_priority_card() or self.get_unseen_card()
         return card
 
-    def play(self):
+    def play_go(self):
         #breakpoint()
         self.organise_cards()
         if self.active_card_id is None:
@@ -180,6 +201,25 @@ class Deck(db.Model):
             # print(self.shuffle_counter, len(self.seen_cards))
         if self.shuffle_counter == 0:
             db.session.commit()
+
+    def play_outcomes(self, outcomes):
+        """
+        plays as many cards as there are in outcomes
+        outcomes :
+        {
+            '1': {'id': '2516', 'result': 'x'},
+            '2': {'id': '2517', 'result': 'z'},
+            'deck_id': '6'
+        }
+
+        """
+        for out in outcomes:
+            self.play_go()
+            card = Card.query.get(self.active_card_id)
+            if out is True:
+                card.known()
+            elif out is False:
+                card.unknown()
 
 
 class Word(Card):
