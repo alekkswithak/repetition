@@ -56,7 +56,6 @@ class Card(db.Model, Base):
             self.learning = False
         self.last_time = datetime.now()
         self.deck.active_card_id = None
-        #db.session.commit()
 
     def unknown(self):
         ease = self.ease / self.deck.multiplier
@@ -67,18 +66,15 @@ class Card(db.Model, Base):
         self.priority = True
         self.last_time = datetime.now()
         self.deck.active_card_id = None
-        #db.session.commit()
 
 
 class Deck(db.Model):
     __tablename__ = 'deck'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
-    card_number = db.Column(db.Integer, default=20)  # old cards per go and intial number of cards
+    card_number = db.Column(db.Integer, default=20)  # old cards per go and initial number of cards
     new_card_number = db.Column(db.Integer, default=10)  # new cards per go
     card_counter = db.Column(db.Integer, default=0)
-    shuffle_interval = db.Column(db.Integer, default=20)
-    shuffle_counter = db.Column(db.Integer, default=0)
     multiplier = db.Column(db.Integer, default=2)  # ease multiplier
     entry_interval = db.Column(db.Integer, default=5)  # new card entry
     last_date = db.Column(db.Date, default=None)
@@ -92,28 +88,21 @@ class Deck(db.Model):
             for c in self.unseen_cards[0:self.card_number]:
                 c.learning = True
             return
-        #max_ease = max(self.seen_cards, key=lambda c: c.ease).ease
-        #max_time = max(self.seen_cards, key=lambda c: c.last_time).last_time
-        min_time = min(self.seen_cards, key=lambda c: c.last_time).last_time
-        #delta = max_time - min_time
 
+        min_time = min(self.seen_cards, key=lambda c: c.last_time).last_time
         delta_cards = defaultdict(list)
         for c in self.seen_cards:
             delta = (c.last_time - min_time).total_seconds()
             delta_cards[delta*c.ease].append(c)
-            #print(delta)
             if not c.priority:
                 c.learning = False
 
         counter = 0
-        #breakpoint()
         while counter < self.card_number:
-            #print(len(delta_cards), counter)
             for c in delta_cards[min(delta_cards)]:
                 c.learning = True
                 counter += 1
             del delta_cards[min(delta_cards)]
-
 
         for c in self.unseen_cards[0:self.new_card_number]:
             c.learning = True
@@ -126,81 +115,10 @@ class Deck(db.Model):
             self.shuffle()
         return [c for c in self.cards if c.learning]
 
-    def get_priority_cards(self):
-        return [c for c in self.seen_cards if c.priority]
-
     def organise_cards(self):
         self.seen_cards = [c for c in self.cards if c.last_time is not None]
         self.unseen_cards = [c for c in self.cards if c.last_time is None]
-        if self.shuffle_counter == self.card_number + self.new_card_number:
-            self.shuffle()
-            self.shuffle_counter = 0
         self.learning_cards = [c for c in self.cards if c.learning]
-
-    def get_seen_card(self):
-        if self.seen_cards:
-            review_point = datetime.now() - timedelta(
-                minutes=math.sqrt(len(self.seen_cards))
-                )
-            fl = [c for c in self.seen_cards if c.last_time < review_point]
-            #  oldest_10 = self.seen_cards.sort(key=lambda c: c.last_time)
-            if fl:
-                return min(fl, key=lambda c: c.ease)
-
-    def get_learning_card(self):
-        if self.learning_cards:
-            cards = [c for c in self.learning_cards if c.priority is False]
-            if cards:
-                return min(cards, key=lambda c: c.ease)
-            else:
-                return min(self.learning_cards, key=lambda c: c.ease)
-
-    def get_unseen_card(self):
-        if self.unseen_cards:
-            return self.unseen_cards[0]
-
-    def get_priority_card(self):
-        """
-        Returns the priority card with the lowest ease.
-        """
-        cards = [c for c in self.seen_cards if c.priority]
-        if cards:
-            return min(cards, key=lambda c: c.ease)
-
-    def get_next_card(self):
-        card = None
-        if self.card_counter >= self.entry_interval:
-            card = self.get_unseen_card()
-            self.card_counter = 0
-        if card is None:
-            self.card_counter += 1
-            if self.card_counter in (4, 2):
-                card = self.get_priority_card()
-        if card is None:
-            self.shuffle_counter += 1
-            card = self.get_learning_card()
-        if card is None:
-            card = self.get_priority_card() or self.get_unseen_card()
-        return card
-
-    def play_go(self):
-        #breakpoint()
-        self.organise_cards()
-        if self.active_card_id is None:
-            if len(self.seen_cards) < self.card_number:
-                # first entry to deck
-                if len(self.learning_cards) == 0:
-                    # get self.card_number of cards and add them to learning
-                    for c in self.unseen_cards[:self.card_number]:
-                        c.learning = True
-                        self.learning_cards.append(c)
-                self.active_card_id = self.get_learning_card().id
-                self.shuffle_counter += 1
-            else:
-                self.active_card_id = self.get_next_card().id
-            # print(self.shuffle_counter, len(self.seen_cards))
-        if self.shuffle_counter == 0:
-            db.session.commit()
 
     def play_outcomes(self, outcomes):
         """
@@ -209,17 +127,21 @@ class Deck(db.Model):
         {
             '1': {'id': '2516', 'result': 'x'},
             '2': {'id': '2517', 'result': 'z'},
-            'deck_id': '6'
+            'deck_id': '6' # not here?
         }
 
         """
-        for out in outcomes:
-            self.play_go()
-            card = Card.query.get(self.active_card_id)
-            if out is True:
+        for i in range(0, len(outcomes) - 1):
+            outcome_row = outcomes[str(i+1)]
+            card_id = int(outcome_row.get('id'))
+            card = Card.query.get(card_id)
+            result = outcome_row.get('result')
+            if result == 'z':
                 card.known()
-            elif out is False:
+            elif result == 'x':
                 card.unknown()
+
+        db.session.commit()
 
 
 class Word(Card):

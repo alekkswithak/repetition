@@ -67,7 +67,7 @@ document.addEventListener("keypress", function onPress(event) {
   } else if (event.key === "s") {
       $('#card-answer-'+counter).show()
   }
-  if (counter === 20) {
+  if (counter === 1) {
     // exit integer to be dynamic
     fetch("{{ url_for('process_game') }}", {
       method: "POST",

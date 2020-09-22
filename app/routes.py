@@ -19,12 +19,20 @@ def flash():
 
 @app.route('/process_game', methods=['GET', 'POST'])
 def process_game():
+    """
+        POST :
+            {
+                '1': {'id': '2516', 'result': 'x'},
+                '2': {'id': '2517', 'result': 'z'},
+                'deck_id': '6'
+            }
+    """
 
     received = request.json
-    deck_id = received['deck_id']
+    deck_id = int(received['deck_id'])
     deck = Deck.query.get(deck_id)
-
-    # breakpoint()
+    deck.play_outcomes(received)
+    breakpoint()
     print(received)
 
 #@app.route('/')

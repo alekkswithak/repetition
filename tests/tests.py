@@ -68,104 +68,45 @@ class DeckTests(unittest.TestCase):
         self.assertEqual(len(deck.unseen_cards), 32)
         self.assertEqual(len(deck.learning_cards), 30)
 
-    def test_deck_play_first_card(self):
+    def test_deck_get_learning_cards_initial(self):
         deck = make_test_deck()
-        deck.play()
-        self.assertEqual(deck.active_card_id, 1)
-        self.assertEqual(len(deck.seen_cards), 0)
-        self.assertEqual(len(deck.unseen_cards), 52)
-        self.assertEqual(len(deck.learning_cards), 20)
+        learning_cards = deck.get_learning_cards()
+        self.assertEqual(len(learning_cards), 20)
 
-    # def test_deck_play_two(self):
-    #     """
-    #     Checks deck status after two cards played
-    #     """
-    #     deck = make_test_deck()
-    #     outcomes = [True, True]
-    #     play_deck(deck, outcomes)
-    #     deck.play()
-    #     self.assertEqual(deck.active_card_id, 3)
-    #     self.assertEqual(len(deck.seen_cards), 2)
-    #     self.assertEqual(len(deck.unseen_cards), 50)
-    #     self.assertEqual(len(deck.learning_cards), 20)
+    def test_deck_play_first_card_known(self):
+        deck = make_test_deck()
+        learning_card = deck.get_learning_cards()[0]
+        outcomes = {
+            '1': {'id': str(learning_card.id), 'result': 'z'},
+            'non_card_data': True,
+        }
+        deck.play_outcomes(outcomes)
+        deck.organise_cards()
+        self.assertEqual(len(deck.get_learning_cards()), 19)
 
-    # def test_deck_play_twenty_one(self):
-    #     """
-    #     Checks deck status after two cards played
-    #     """
-    #     deck = make_test_deck()
-    #     outcomes = [True for _ in range(21)]
-    #     play_deck(deck, outcomes)
-    #     deck.play()
-    #     self.assertEqual(len(deck.seen_cards), 20)
-    #     self.assertEqual(len(deck.unseen_cards), 32)
-    #     self.assertEqual(len(deck.learning_cards), 20)
+    def test_deck_play_first_card_unknown(self):
+        deck = make_test_deck()
+        learning_card = deck.get_learning_cards()[0]
+        outcomes = {
+            '1': {'id': str(learning_card.id), 'result': 'x'},
+            'non_card_data': True,
+        }
+        deck.play_outcomes(outcomes)
+        deck.organise_cards()
+        self.assertEqual(len(deck.get_learning_cards()), 20)
 
-    # def test_deck_play_200_correct(self):
-    #     """
-    #     Checks deck status after two cards played
-    #     """
-    #     deck = make_test_deck()
-    #     outcomes = [True for _ in range(200)]
-    #     play_deck(deck, outcomes)
-    #     deck.play()
-    #     c = max(deck.cards, key=lambda c: c.ease)
-    #     self.assertEqual(c.ease, 32)
-    #     self.assertEqual(len(deck.seen_cards), 50)
-    #     self.assertEqual(len(deck.unseen_cards), 2)
-    #     self.assertEqual(len(deck.learning_cards), 20)
-
-    # def test_deck_play_200_incorrect(self):
-    #     """
-    #     Checks deck status after two cards played
-    #     """
-    #     deck = make_test_deck()
-    #     outcomes = [False for _ in range(200)]
-    #     play_deck(deck, outcomes)
-    #     deck.play()
-    #     c = max(deck.cards, key=lambda c: c.ease)
-    #     self.assertEqual(c.ease, 1)
-    #     self.assertEqual(len(deck.seen_cards), 50)
-    #     self.assertEqual(len(deck.unseen_cards), 2)
-    #     self.assertEqual(len(deck.learning_cards), 20)
-
-    # def test_stress_deck(self):
-    #     deck = Deck()
-    #     deck.cards.extend([
-    #         Card()
-    #         for _ in range(12000)
-    #     ])
-    #     print(len(deck.cards))
-    #     db.session.add(deck)
-    #     db.session.commit()
-    #     outcomes = [True for _ in range(12000)]
-    #     play_deck(deck, outcomes)
-    #     c = max(deck.cards, key=lambda c: c.ease)
-    #     self.assertEqual(c.ease, 1)
-    #     self.assertEqual(len(deck.seen_cards), 50)
-    #     self.assertEqual(len(deck.unseen_cards), 2)
-    #     self.assertEqual(len(deck.learning_cards), 20)
-
-
-def play_deck(deck, outcomes):
-    """
-    plays as many cards as there are in outcomes
-    outcomes is a list of bool
-    """
-    played = []
-    for out in outcomes:
-        deck.play()
-        card = Card.query.get(deck.active_card_id)
-        if out is True:
-            card.known()
-        elif out is False:
-            card.unknown()
-        played.append(card)
-        print(len(played))
-
-    return played
-
-
+    def test_deck_play_first_20_known(self):
+        deck = make_test_deck()
+        learning_cards = deck.get_learning_cards()
+        outcomes = {'non_card_data': True}
+        i = 0
+        for learning_card in learning_cards:
+            i += 1
+            outcomes[str(i)] = {'id': str(learning_card.id), 'result': 'z'}
+        deck.play_outcomes(outcomes)
+        eases = [card.ease for card in deck.get_learning_cards()]
+        self.assertEqual(len([e for e in eases if e == 2]), 20)
+        self.assertEqual(len(deck.get_learning_cards()), 30)
 
 
 if __name__ == '__main__':
