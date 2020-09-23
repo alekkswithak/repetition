@@ -3,19 +3,27 @@ from app import app
 from app.models import Deck, Card
 
 
-@app.route('/')
-def flash():
-    deck = Deck.query.filter_by(name='HSK6')[0]
+@app.route('/flash/<int:deck_id>')
+def flash(deck_id):
+    #deck = Deck.query.filter_by(name='HSK6')[0]
+    deck = Deck.query.get(deck_id)
     deck_cards = deck.get_learning_cards()
+    print(deck_cards)
     cards = []
     i = 0
     for c in deck_cards:
         tc = c.get_dict()
         tc['i'] = i
+        tc['ease'] = c.ease
         i += 1
         cards.append(tc)
 
-    return render_template('test_flash.html', cards=cards, deck_id=deck.id)
+    return render_template(
+        'test_flash.html',
+        cards=cards,
+        deck_id=deck.id,
+        exit_integer=len(deck_cards)
+    )
 
 @app.route('/process_game', methods=['GET', 'POST'])
 def process_game():
@@ -31,11 +39,12 @@ def process_game():
     received = request.json
     deck_id = int(received['deck_id'])
     deck = Deck.query.get(deck_id)
-    deck.play_outcomes(received)
-    breakpoint()
     print(received)
+    #breakpoint()
+    deck.play_outcomes(received)
+    return redirect(url_for('flash', deck_id=deck_id))
 
-#@app.route('/')
+@app.route('/')
 @app.route('/index')
 def index():
     user = {'username': '学生'}

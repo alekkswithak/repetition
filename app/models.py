@@ -107,6 +107,8 @@ class Deck(db.Model):
         for c in self.unseen_cards[0:self.new_card_number]:
             c.learning = True
 
+        db.session.commit()
+
     def __repr__(self):
         return '<Deck "{}">'.format(self.name)
 
