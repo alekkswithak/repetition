@@ -145,6 +145,15 @@ class Deck(db.Model):
 
         db.session.commit()
 
+    def card_total(self):
+        return len(self.cards)
+
+    def seen_total(self):
+        return len([c for c in self.cards if c.last_time])
+
+    def unseen_total(self):
+        return len([c for c in self.cards if not c.last_time])
+
 
 class Word(Card):
     __tablename__ = 'word'
