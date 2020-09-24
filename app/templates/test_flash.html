@@ -1,21 +1,43 @@
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>Flash Deck</title>
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
 
 
-{% for c in cards %}
-  <div id="ele-{{ c.i }}" style="display: none;">
-    <div id="card-id-{{ c.i }}" style="display: none;" >{{ c.id }}</div>
-    <h1>{{ c.questions[0] }}</h1>
-    <h2>{{ c.questions[1] }}</h2>
-        <div id="card-answer-{{ c.i }}" style="display: none;">
-            <p>{{ c.answers[0] }}</p>
-            <p>{{ c.answers[1] }}</p>
+  {% for c in cards %}
+    <div class="container" id="ele-{{ c.i }}" style="display: none;">
+      <div id="card-id-{{ c.i }}" style="display: none;" >{{ c.id }}</div>
+      <div class="row">
+        <div class="col-lg-12 text-center">
+          <!-- <h1 class="mt-5">A Bootstrap 4 Starter Template</h1> -->
+          <h1 class="mt-5">{{ c.questions[0] }}</h1>
+          <h2 class="mt-5">{{ c.questions[1] }}</h2>
+          <!-- <p class="lead">Complete with pre-defined file paths and responsive navigation!</p> -->
+          <div id="card-answer-{{ c.i }}" style="display: none;">
+            <ul class="list-unstyled">
+              <li>{{ c.answers[0] }}</li>
+              <li>{{ c.answers[1] }}</li>
+            </ul>
+          </div>
         </div>
-        <button id='show-answer'>Show Answer</button>
-        <p>Card id: {{ c.id }}</p>
-        <p>Ease: {{ c.ease }}</p>
-  </div>
-{% endfor %}
+      </div>
+    </div>
+  {% endfor %}
 
+</body>
 
 <script>
 exit_integer = parseInt("{{ exit_integer }}")
@@ -98,11 +120,8 @@ window.onbeforeunload = function() {
     console.log('POSTING')
 return;
 }
-// window.addEventListener('beforeunload',(event) => {
 
-//     event.preventDefault();
-
-//     event.returnValue = undefined;
-
-// });
 </script>
+
+<!-- Bootstrap core JavaScript -->
+<script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
