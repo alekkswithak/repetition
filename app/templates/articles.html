@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<br>
+<div class="container">
+    <div class="col-lg-12 text-center">
+        <p>{{ url }}</p>
+    <h1>Get new article</h1>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.url.label }}<br>
+            {{ form.url(size=32) }}
+        </div>
+        <div class='col-lg-12'>
+            {{ form.submit(type="submit") }}
+        </div>
+    </form>
+</div>
+</div>
+
+<br>
+<div class="container">
+    <h2>Decks</h2>
+    <div class="table-responsive table-hover">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Total</th>
+          <th>Seen</th>
+          <th>Unseen</th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in decks %}
+        <tr>
+            <td>{{ d.id }}</td>
+            <td>{{ d.name }}</td>
+            <td>{{ d.card_total() }}</td>
+            <td>{{ d.seen_total() }}</td>
+            <td>{{ d.unseen_total() }}</td>
+            <td><a href={{ url_for('browse_deck', deck_id=d.id) }}>Browse</a></td>
+            <td><a href={{ url_for('flash', deck_id=d.id) }}>Play</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+{% endblock %}

@@ -1,5 +1,5 @@
 from datetime import datetime
-import unittest, os
+import unittest
 from app import app, db
 from app.models import Deck, Card, Word
 from queue import PriorityQueue

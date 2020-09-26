@@ -1,6 +1,12 @@
 from flask import render_template, redirect, url_for, request
 from app import app
-from app.models import Deck, Card
+from app.forms import URLForm
+from app.models import (
+    Deck,
+    Card,
+    ArticleDeck
+)
+from scraper.scraper import Scraper
 
 
 @app.route('/flash/<int:deck_id>')
@@ -25,6 +31,7 @@ def flash(deck_id):
         exit_integer=len(deck_cards)
     )
 
+
 @app.route('/process_game', methods=['GET', 'POST'])
 def process_game():
     """
@@ -44,6 +51,7 @@ def process_game():
     deck.play_outcomes(received)
     return redirect(url_for('flash', deck_id=deck_id))
 
+
 @app.route('/')
 @app.route('/index')
 def index():
@@ -52,32 +60,28 @@ def index():
     return render_template('decks.html', title='Home', user=user, decks=decks)
 
 
+@app.route('/articles', methods=['GET', 'POST'])
+def articles():
+    user = {'username': '学生'}
+    form = URLForm()
+    url = ''
+    if form.validate_on_submit():
+        url = form.url.data
+        scraper = Scraper(url)
+        scraper.process_page().create_article()
+    return render_template(
+        'articles.html',
+        title='Articles',
+        form=form,
+        url=url,
+        decks=ArticleDeck.query.all()
+    )
+
+
 @app.route('/deck/<int:deck_id>')
 def browse_deck(deck_id):
     deck = Deck.query.get(id)
     return render_template('browse_deck.html', deck=deck)
-
-
-@app.route('/play_deck/<int:deck_id>')
-def play_deck(deck_id):
-    deck = Deck.query.get(deck_id)
-    deck.play()
-    card = Card.query.get(deck.active_card_id)
-    return render_template('play_deck.html', card=card)
-
-
-@app.route('/card_known/<int:card_id>')
-def card_known(card_id):
-    card = Card.query.get(card_id)
-    card.known()
-    return redirect(url_for('play_deck', deck_id=card.deck.id))
-
-
-@app.route('/card_unknown/<int:card_id>')
-def card_unknown(card_id):
-    card = Card.query.get(card_id)
-    card.unknown()
-    return redirect(url_for('play_deck', deck_id=card.deck.id))
 
 
 @app.route('/deck_browse/')

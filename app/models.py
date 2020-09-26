@@ -72,6 +72,7 @@ class Deck(db.Model):
     __tablename__ = 'deck'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
+    type = db.Column(db.String(50))
     card_number = db.Column(db.Integer, default=20)  # old cards per go and initial number of cards
     new_card_number = db.Column(db.Integer, default=10)  # new cards per go
     card_counter = db.Column(db.Integer, default=0)
@@ -81,6 +82,11 @@ class Deck(db.Model):
 
     cards = db.relationship('Card', back_populates='deck')
     active_card_id = db.Column(db.Integer, default=None)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'deck',
+        'polymorphic_on': type
+    }
 
     def shuffle(self):
         self.organise_cards()
@@ -155,6 +161,39 @@ class Deck(db.Model):
         return len([c for c in self.cards if not c.last_time])
 
 
+class ArticleDeck(Deck):
+    __tablename__ = 'article_deck'
+    id = db.Column(db.Integer, db.ForeignKey('deck.id'), primary_key=True)
+    url = db.Column(db.String(512))
+    title = db.Column(db.String(64))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'article_deck',
+    }
+
+
+class ArticleWord(Card):
+    __tablename__ = 'article_word'
+    id = db.Column(db.Integer, db.ForeignKey('card.id'), primary_key=True)
+    frequency = db.Column(db.Integer)
+
+    word_id = db.Column(db.Integer, db.ForeignKey('word.id'))
+    word = db.relationship(
+        'Word',
+        foreign_keys=[word_id],
+    )
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'article_word',
+    }
+
+    def get_questions(self):
+        return self.word.get_questions()
+
+    def get_answers(self):
+        return self.word.get_answers()
+
+
 class Word(Card):
     __tablename__ = 'word'
     id = db.Column(db.Integer, db.ForeignKey('card.id'), primary_key=True)
@@ -164,6 +203,8 @@ class Word(Card):
     pinyin_tone = db.Column(db.String(80), index=True)
     english = db.Column(db.String(160))
     hsk = db.Column(db.Integer)
+
+    #article_words = db.relationship('ArticleWord', back_populates='word')
 
     def __repr__(self):
         return '<{}>'.format(self.zi_simp)
