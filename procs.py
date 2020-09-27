@@ -1,6 +1,6 @@
 import os
 import re
-from scraper.scraper import Scraper
+from app.scraper.scraper import Scraper
 from app.models import db
 from app.models import Word, Card, Deck
 

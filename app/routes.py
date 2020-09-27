@@ -6,7 +6,7 @@ from app.models import (
     Card,
     ArticleDeck
 )
-from scraper.scraper import Scraper
+from app.scraper.scraper import Scraper
 
 
 @app.route('/flash/<int:deck_id>')
