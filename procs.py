@@ -11,10 +11,33 @@ def get_chinese(context):
     return context
 
 
+def read_chinese_dictionary():
+    location = os.path.join(os.getcwd(), 'files')
+    with open(os.path.join(location, 'cedict.txt'), errors='ignore', encoding='utf-8') as f:
+        raw = f.read()
+        lines = raw.split('\n')
+        structures = set(len(l.split('\t')) for l in lines)
+        assert len(structures) == 1
+        for l in lines:
+            chinese_data = l.split(' ')
+            trad = chinese_data[0]
+            simp = chinese_data[1]
+            pinyin = l.split('[')[1].split(']')[0]
+            english = l.split('/')[1]
+            fields = {
+                'zi_simp': simp,
+                'zi_trad': trad,
+                'pinyin_number': pinyin,
+                'english': english,
+            }
+            # db magic here
+            w = Word(**fields)
+            db.session.add(w)
+    db.session.commit()
+
+
 def read_hsk():
-
     location = os.path.join(os.getcwd(), 'files\\hsk_vocab')
-
     for x in (1, 2, 3, 4, 5, 6):
         filename = 'HSK{}.txt'.format(x)
         with open(os.path.join(location, filename), encoding='utf-8') as f:
