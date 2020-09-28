@@ -14,7 +14,8 @@ def flash(deck_id):
     #deck = Deck.query.filter_by(name='HSK6')[0]
     deck = Deck.query.get(deck_id)
     deck_cards = deck.get_learning_cards()
-    print(deck_cards)
+
+    # TODO: turn into model method
     cards = []
     i = 0
     for c in deck_cards:
@@ -24,15 +25,50 @@ def flash(deck_id):
         i += 1
         cards.append(tc)
 
+    redirect_url = url_for('process_game')
+
     return render_template(
         'test_flash.html',
         cards=cards,
         deck_id=deck.id,
-        exit_integer=len(deck_cards)
+        exit_integer=len(deck_cards),
+        redirect_url=redirect_url
     )
 
 
-@app.route('/process_game', methods=['GET', 'POST'])
+@app.route('/sort/<int:deck_id>')
+def sort(deck_id):
+    deck = Deck.query.get(deck_id)
+    cards = []
+    i = 0
+    for c in deck.get_unsorted_cards():
+        tc = c.get_dict()
+        tc['i'] = i
+        tc['ease'] = c.ease
+        i += 1
+        cards.append(tc)
+
+    redirect_url = url_for('process_sort')
+
+    return render_template(
+        'test_flash.html',
+        cards=cards,
+        deck_id=deck.id,
+        exit_integer=len(deck.get_unsorted_cards()),
+        redirect_url=redirect_url
+    )
+
+
+@app.route('/process_sort', methods=['POST'])
+def process_sort():
+    received = request.json
+    deck_id = int(received['deck_id'])
+    deck = Deck.query.get(deck_id)
+    deck.process_sort(received)
+    return redirect(url_for('flash', deck_id=deck_id))
+
+
+@app.route('/process_game', methods=['POST'])
 def process_game():
     """
         POST :
@@ -46,8 +82,6 @@ def process_game():
     received = request.json
     deck_id = int(received['deck_id'])
     deck = Deck.query.get(deck_id)
-    print(received)
-    #breakpoint()
     deck.play_outcomes(received)
     return redirect(url_for('flash', deck_id=deck_id))
 

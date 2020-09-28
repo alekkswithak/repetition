@@ -35,6 +35,8 @@ def read_chinese_dictionary():
                 db.session.add(w)
     db.session.commit()
 
+    return Word.query.all()
+
 
 def read_hsk():
     location = os.path.join(os.getcwd(), 'files\\hsk_vocab')

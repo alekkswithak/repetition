@@ -20,36 +20,6 @@
 </div>
 </div>
 
-<br>
-<div class="container">
-    <h2>Decks</h2>
-    <div class="table-responsive table-hover">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Total</th>
-          <th>Seen</th>
-          <th>Unseen</th>
-          <th></th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for d in decks %}
-        <tr>
-            <td>{{ d.id }}</td>
-            <td>{{ d.name }}</td>
-            <td>{{ d.card_total() }}</td>
-            <td>{{ d.seen_total() }}</td>
-            <td>{{ d.unseen_total() }}</td>
-            <td><a href={{ url_for('browse_deck', deck_id=d.id) }}>Browse</a></td>
-            <td><a href={{ url_for('flash', deck_id=d.id) }}>Play</a></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    </div>
-  </div>
+{% include 'decks_component.html' %}
+
 {% endblock %}

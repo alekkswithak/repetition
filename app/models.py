@@ -26,6 +26,8 @@ class Card(db.Model, Base):
     deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
     deck = db.relationship('Deck', back_populates='cards')
 
+    sorted = db.Column(db.Boolean, default=False)
+    to_study = db.Column(db.Boolean, default=True)
     frequency = db.Column(db.Integer)
 
     __mapper_args__ = {
@@ -98,10 +100,11 @@ class Deck(db.Model):
         min_time = min(self.seen_cards, key=lambda c: c.last_time).last_time
         delta_cards = defaultdict(list)
         for c in self.seen_cards:
-            delta = (c.last_time - min_time).total_seconds()
-            delta_cards[delta*c.ease].append(c)
-            if not c.priority:
-                c.learning = False
+            if c.to_study:
+                delta = (c.last_time - min_time).total_seconds()
+                delta_cards[delta*c.ease].append(c)
+                if not c.priority:
+                    c.learning = False
 
         counter = 0
         while counter < self.card_number:
@@ -112,8 +115,13 @@ class Deck(db.Model):
             if len(delta_cards) == 0:
                 break
 
-        for c in self.unseen_cards[0:self.new_card_number]:
-            c.learning = True
+        for c in self.unseen_cards:
+            counter = 0
+            if c.to_study:
+                c.learning = True
+                counter += 1
+                if counter == self.new_card_number:
+                    break
 
         db.session.commit()
 
@@ -150,17 +158,34 @@ class Deck(db.Model):
                 card.known()
             elif result == 'x':
                 card.unknown()
-
         db.session.commit()
+
+    def process_sort(self, outcomes):
+        for i in range(0, len(outcomes) - 1):
+            outcome_row = outcomes[str(i+1)]
+            card_id = int(outcome_row.get('id'))
+            card = Card.query.get(card_id)
+            result = outcome_row.get('result')
+            if result == 'z':
+                card.to_study = False
+            elif result == 'x':
+                card.to_study = True
+            card.sorted = True
+        db.session.commit()
+
+    def get_unsorted_cards(self):
+        return [c for c in self.cards if not c.sorted]
 
     def card_total(self):
         return len(self.cards)
 
+    #  TODO: make these fields?
     def seen_total(self):
-        return len([c for c in self.cards if c.last_time])
+        to_study = [c for c in self.cards if c.to_study]
+        return len([c for c in to_study if c.last_time])
 
-    def unseen_total(self):
-        return len([c for c in self.cards if not c.last_time])
+    def to_study_total(self):
+        return len([c for c in self.cards if c.to_study])
 
 
 class ArticleDeck(Deck):
