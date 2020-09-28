@@ -30,9 +30,9 @@ def read_chinese_dictionary():
                 'pinyin_number': pinyin,
                 'english': english,
             }
-            # db magic here
-            w = Word(**fields)
-            db.session.add(w)
+            if 'variant of' not in english:
+                w = Word(**fields)
+                db.session.add(w)
     db.session.commit()
 
 
@@ -55,7 +55,6 @@ def read_hsk():
                     'english': data[4],
                     'hsk': x,
                 }
-                # db magic here
                 w = Word(**fields)
                 db.session.add(w)
     db.session.commit()

@@ -1,8 +1,6 @@
-import random
 from app import db
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.orderinglist import ordering_list
-from datetime import datetime, timedelta
+from datetime import datetime
 import math
 import abc
 from collections import defaultdict
@@ -27,6 +25,8 @@ class Card(db.Model, Base):
     learning = db.Column(db.Boolean, default=False)  # for reprioritisation
     deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
     deck = db.relationship('Deck', back_populates='cards')
+
+    frequency = db.Column(db.Integer)
 
     __mapper_args__ = {
         'polymorphic_identity': 'card',
@@ -109,6 +109,8 @@ class Deck(db.Model):
                 c.learning = True
                 counter += 1
             del delta_cards[min(delta_cards)]
+            if len(delta_cards) == 0:
+                break
 
         for c in self.unseen_cards[0:self.new_card_number]:
             c.learning = True
@@ -175,9 +177,8 @@ class ArticleDeck(Deck):
 class ArticleWord(Card):
     __tablename__ = 'article_word'
     id = db.Column(db.Integer, db.ForeignKey('card.id'), primary_key=True)
-    frequency = db.Column(db.Integer)
-
     word_id = db.Column(db.Integer, db.ForeignKey('word.id'))
+
     word = db.relationship(
         'Word',
         foreign_keys=[word_id],
@@ -204,8 +205,6 @@ class Word(Card):
     english = db.Column(db.String(160))
     hsk = db.Column(db.Integer)
 
-    #article_words = db.relationship('ArticleWord', back_populates='word')
-
     def __repr__(self):
         return '<{}>'.format(self.zi_simp)
 
@@ -221,8 +220,9 @@ class Word(Card):
         return q
 
     def get_answers(self):
+        pinyin = self.pinyin_tone if self.pinyin_tone else self.pinyin_number
         a = (
-            self.pinyin_tone,
+            pinyin,
             self.english
         )
         return a
