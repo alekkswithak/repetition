@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 import math
 import abc
+import json
 from collections import defaultdict
 
 Base = declarative_base()
@@ -115,8 +116,8 @@ class Deck(db.Model):
             if len(delta_cards) == 0:
                 break
 
+        counter = 0
         for c in self.unseen_cards:
-            counter = 0
             if c.to_study:
                 c.learning = True
                 counter += 1
@@ -197,6 +198,34 @@ class ArticleDeck(Deck):
     __mapper_args__ = {
         'polymorphic_identity': 'article_deck',
     }
+
+    #TODO: make AD inherit LD and combine these methods
+    @classmethod
+    def get_all_json(cls):
+        decks = cls.query.all()
+        decks_json = {' ': [d for d in decks]}
+        return decks_json
+
+
+class LanguageDeck(Deck):
+    __tablename__ = 'language_deck'
+    id = db.Column(db.Integer, db.ForeignKey('deck.id'), primary_key=True)
+    language = db.Column(db.String(32))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'language_deck',
+    }
+
+    @classmethod
+    def get_all_json(cls):
+        decks = cls.query.all()
+        decks_json = {}
+        for d in decks:
+            if d.language in decks_json:
+                decks_json[d.language].append(d)
+            else:
+                decks_json[d.language] = [d]
+        return decks_json
 
 
 class ArticleWord(Card):

@@ -1,11 +1,20 @@
 from app.scraper.scraper import Scraper
 from app.models import Word
+from app import db, app
 from procs import read_hsk
 from collections import defaultdict
 import unittest
 
 
 class ScraperTest(unittest.TestCase):
+
+    def setUp(self):
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://'
+        db.create_all()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
 
     def test_process_page(self):
         url = 'https://zh.wikipedia.org/wiki/%E9%97%B4%E9%9A%94%E9%87%8D%E5%A4%8D'
@@ -50,7 +59,5 @@ class ScraperTest(unittest.TestCase):
         self.assertEqual(len(found), 100)
 
 
-
 if __name__ == '__main__':
     unittest.main()
-

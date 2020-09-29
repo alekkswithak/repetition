@@ -2,7 +2,12 @@ import os
 import re
 from app.scraper.scraper import Scraper
 from app.models import db
-from app.models import Word, Card, Deck
+from app.models import (
+    Word,
+    Card,
+    Deck,
+    LanguageDeck
+)
 
 
 def get_chinese(context):
@@ -65,6 +70,22 @@ def read_hsk():
 def make_decks():
     words = Card.query.filter_by(type='word')
     decks = {n: Deck(name='HSK{}'.format(n)) for n in range(1, 7)}
+
+    for w in words:
+        decks[w.hsk].cards.append(w)
+    for _, d in decks.items():
+        db.session.add(d)
+    db.session.commit()
+
+def make_chinese_decks():
+    words = Word.query.filter(Word.hsk.isnot(None))
+    decks = {
+        n: LanguageDeck(
+            name='HSK{}'.format(n),
+            language='Chinese'
+        )
+        for n in range(1, 7)
+    }
 
     for w in words:
         decks[w.hsk].cards.append(w)

@@ -4,7 +4,8 @@ from app.forms import URLForm
 from app.models import (
     Deck,
     Card,
-    ArticleDeck
+    ArticleDeck,
+    LanguageDeck
 )
 from app.scraper.scraper import Scraper
 
@@ -90,8 +91,13 @@ def process_game():
 @app.route('/index')
 def index():
     user = {'username': '学生'}
-    decks = Deck.query.all()
-    return render_template('decks.html', title='Home', user=user, decks=decks)
+    decks = LanguageDeck.get_all_json()
+    return render_template(
+        'decks.html',
+        title='Home',
+        user=user,
+        language_decks=decks
+    )
 
 
 @app.route('/articles', methods=['GET', 'POST'])
@@ -108,7 +114,7 @@ def articles():
         title='Articles',
         form=form,
         url=url,
-        decks=ArticleDeck.query.all()
+        language_decks=ArticleDeck.get_all_json()
     )
 
 

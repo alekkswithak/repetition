@@ -3,35 +3,38 @@
     <br>
     <div class="container">
         <h2>Decks</h2>
-        <div class="table-responsive table-hover">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Unique</th>
-              <th>To Study</th>
-              <th>Seen</th>
-              <th></th>
-              <th></th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for d in decks %}
-            <tr>
-                <td>{{ d.id }}</td>
-                <td>{{ d.name }}</td>
-                <td>{{ d.card_total() }}</td>
-                <td>{{ d.to_study_total() }}</td>
-                <td>{{ d.seen_total() }}</td>
-                <td><a href={{ url_for('sort', deck_id=d.id) }}>Sort</a></td>
-                <td><a href={{ url_for('browse_deck', deck_id=d.id) }}>Browse</a></td>
-                <td><a href={{ url_for('flash', deck_id=d.id) }}>Play</a></td>
-            </tr>
+            {% for language, decks in language_decks.items() %}
+            <h3>{{ language }}</h3>
+            <div class="table-responsive table-hover">
+            <table class="table">
+            <thead>
+                <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Unique</th>
+                <th>To Study</th>
+                <th>Seen</th>
+                <th></th>
+                <th></th>
+                <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in decks %}
+                <tr>
+                    <td>{{ d.id }}</td>
+                    <td>{{ d.name }}</td>
+                    <td>{{ d.card_total() }}</td>
+                    <td>{{ d.to_study_total() }}</td>
+                    <td>{{ d.seen_total() }}</td>
+                    <td><a href={{ url_for('sort', deck_id=d.id) }}>Sort</a></td>
+                    <td><a href={{ url_for('browse_deck', deck_id=d.id) }}>Browse</a></td>
+                    <td><a href={{ url_for('flash', deck_id=d.id) }}>Play</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </table>
+            </div>
             {% endfor %}
-          </tbody>
-        </table>
-        </div>
       </div>
 {% endblock %}
