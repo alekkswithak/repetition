@@ -1,8 +1,8 @@
-from app.scraper.scraper import Scraper
+from app.scraper.scraper import ChineseScraper
 from app.models import ChineseWord
 from app import db, app
-from procs import read_hsk
-from collections import defaultdict
+from procs import read_hsk, read_chinese_dictionary
+from collections import defaultdict, Counter
 import unittest
 
 
@@ -18,21 +18,29 @@ class ScraperTest(unittest.TestCase):
 
     def test_process_page(self):
         url = 'https://zh.wikipedia.org/wiki/%E9%97%B4%E9%9A%94%E9%87%8D%E5%A4%8D'
-        scraper = Scraper(url)
+        scraper = ChineseScraper(url)
         scraper.process_page()
         self.assertEqual(scraper.title, '间隔重复')
         self.assertTrue(scraper.words)
 
     def test_create_article(self):
+        read_chinese_dictionary()
         url = 'https://zh.wikipedia.org/wiki/%E9%97%B4%E9%9A%94%E9%87%8D%E5%A4%8D'
-        scraper = Scraper(url)
+        scraper = ChineseScraper(url)
         article = scraper.process_page().create_article()
         print(article)
         self.assertEqual(len(article.cards), 159)
 
+    def test_scraper_sub_words(self):
+        url = 'test'
+        scraper = ChineseScraper(url)
+        scraper.words = Counter(['目标语言'])
+        article = scraper.create_article()
+        self.assertEqual(len(article.cards), 4)
+
     def test_scraped_words(self):
         url = 'https://zh.wikipedia.org/wiki/%E9%97%B4%E9%9A%94%E9%87%8D%E5%A4%8D'
-        scraper = Scraper(url)
+        scraper = ChineseScraper(url)
         scraper.process_page()
         found = []
         not_found = []

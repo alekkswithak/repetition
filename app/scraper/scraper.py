@@ -1,4 +1,5 @@
 import jieba
+import abc
 from app.models import ArticleDeck, ChineseWord, ArticleWord
 from app import db
 from lxml import html
@@ -20,6 +21,17 @@ class Scraper:
         self.url = url
         self.title = None
         self.words = Counter()
+
+    @abc.abstractmethod
+    def process_page(self):
+        return
+
+    @abc.abstractmethod
+    def create_article(self):
+        return
+
+
+class ChineseScraper(Scraper):
 
     def process_page(self):
         page = urllib.request.urlopen(self.url)
@@ -45,16 +57,28 @@ class Scraper:
         existing_words = {w.zi_simp: w for w in ChineseWord.query.all()}
         #  breakpoint()
         for word_text, freq in self.words.items():
-            try:
+            if word_text in existing_words:
                 word = existing_words[word_text]
-            except KeyError:
-                word = ChineseWord(zi_simp=word_text)
+                article_word = ArticleWord(
+                    frequency=freq,
+                    word=word
+                )
+                deck.cards.append(article_word)
 
-            article_word = ArticleWord(
-                frequency=freq,
-                word=word
-            )
-            deck.cards.append(article_word)
+            else:
+                sub_words = jieba.cut(word_text, cut_all=True)
+                for w in sub_words:
+                    if w in existing_words:
+                        word = existing_words[w]
+                    else:
+                        word = ChineseWord(zi_simp=w)
+
+                    article_word = ArticleWord(
+                        frequency=freq,
+                        word=word
+                    )
+                    deck.cards.append(article_word)
+
         db.session.add(deck)
         db.session.commit()
         return deck
