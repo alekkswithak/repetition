@@ -7,7 +7,7 @@ from app.models import (
     ArticleDeck,
     LanguageDeck
 )
-from app.scraper.scraper import ChineseScraper
+from app.scraper.scraper import ChineseScraper, SpanishScraper
 
 
 @app.route('/flash/<int:deck_id>')
@@ -107,7 +107,12 @@ def articles():
     url = ''
     if form.validate_on_submit():
         url = form.url.data
-        scraper = ChineseScraper(url)
+
+        if 'zh.wikipedia.org' in url:
+            scraper = ChineseScraper(url)
+        elif 'es.wikipedia.org' in url:
+            scraper = SpanishScraper(url)
+
         scraper.process_page().create_article()
     return render_template(
         'articles.html',

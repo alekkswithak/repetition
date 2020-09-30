@@ -1,6 +1,11 @@
 import jieba
 import abc
-from app.models import ArticleDeck, ChineseWord, ArticleWord
+from app.models import (
+    ArticleDeck,
+    ChineseWord,
+    ArticleWord,
+    SpanishWord
+)
 from app import db
 from lxml import html
 from collections import Counter
@@ -10,8 +15,8 @@ import urllib.request
 
 
 def get_chinese(context):
-    filter = re.compile(u'[^\u4E00-\u9FA5]') # non-Chinese unicode range
-    context = filter.sub(r'', context) # remove all non-Chinese characters
+    filter = re.compile(u'[^\u4E00-\u9FA5]')  # non-Chinese unicode range
+    context = filter.sub(r'', context)  # remove all non-Chinese characters
     return context
 
 
@@ -30,6 +35,62 @@ class Scraper:
     def create_article(self):
         return
 
+    @classmethod
+    def url_language(self):
+        if 'zh.wikipedia.org' in self.url:
+            return 'Chinese'
+        elif 'es.wikipedia.org' in self.url:
+            return 'Spanish'
+
+
+class SpanishScraper(Scraper):
+
+    def process_page(self):
+        page = urllib.request.urlopen(self.url)
+        page_bytes = page.read()
+        html_string = page_bytes.decode("utf8")
+        page.close()
+
+        tree = html.fromstring(html_string)
+        self.title = tree.xpath('//h1[@class="firstHeading"]/text()')[0]
+        paragraphs = tree.xpath('//div[@class="mw-parser-output"]/p/text()')
+        paragraphs += tree.xpath('//div[@class="mw-parser-output"]/p/b/text()')
+        paragraphs += tree.xpath('//div[@class="mw-parser-output"]/p/a/text()')
+
+        for p in paragraphs:
+            # dummy tokenizer for now
+            p = ('').join([
+                c for c in p
+                if c not in '.,:;()/?!"_=+*%[]'
+            ])
+            words = p.split(' ')
+            self.words += Counter([w.replace('\n', '').lower() for w in words])
+        return self
+
+    def create_article(self):
+        deck = ArticleDeck(name=self.title)
+        deck.url = self.url
+
+        existing_words = {w.spanish: w for w in SpanishWord.query.all()}
+        for word_text, freq in self.words.items():
+            if word_text in existing_words:
+                word = existing_words[word_text]
+                article_word = ArticleWord(
+                    frequency=freq,
+                    word=word
+                )
+                deck.cards.append(article_word)
+            else:
+                word = SpanishWord(spanish=word_text)
+                article_word = ArticleWord(
+                    frequency=freq,
+                    word=word
+                )
+                deck.cards.append(article_word)
+        db.session.add(deck)
+        db.session.commit()
+        return deck
+
 
 class ChineseScraper(Scraper):
 
@@ -42,6 +103,8 @@ class ChineseScraper(Scraper):
         tree = html.fromstring(html_string)
         self.title = tree.xpath('//h1[@class="firstHeading"]/text()')[0]
         paragraphs = tree.xpath('//div[@class="mw-parser-output"]/p/text()')
+        paragraphs += tree.xpath('//div[@class="mw-parser-output"]/p/b/text()')
+        paragraphs += tree.xpath('//div[@class="mw-parser-output"]/p/a/text()')
 
         for p in paragraphs:
             w = get_chinese(p)
@@ -55,7 +118,6 @@ class ChineseScraper(Scraper):
         deck.url = self.url
 
         existing_words = {w.zi_simp: w for w in ChineseWord.query.all()}
-        #  breakpoint()
         for word_text, freq in self.words.items():
             if word_text in existing_words:
                 word = existing_words[word_text]

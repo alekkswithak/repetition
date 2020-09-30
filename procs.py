@@ -1,9 +1,11 @@
 import os
 import re
+from xml.etree import cElementTree as ET
 from app.scraper.scraper import Scraper
 from app.models import db
 from app.models import (
     ChineseWord,
+    SpanishWord,
     Card,
     Deck,
     LanguageDeck
@@ -14,6 +16,21 @@ def get_chinese(context):
     filter = re.compile(u'[^\u4E00-\u9FA5]')  # non-Chinese unicode range
     context = filter.sub(r'', context)  # remove all non-Chinese characters
     return context
+
+
+def read_spanish_dictionary():
+    location = os.path.join(os.getcwd(), 'files\\spanish')
+    for filename in ('es-en.xml', 'es-en-verbs.xml'):
+        tree = ET.parse(os.path.join(location, filename))
+        root = tree.getroot()
+        for w in root.findall('l/w'):
+            spanish = w.find('c').text
+            english = w.find('d').text
+            db.session.add(SpanishWord(
+                spanish=spanish,
+                english=english
+            ))
+    db.session.commit()
 
 
 def read_chinese_dictionary():

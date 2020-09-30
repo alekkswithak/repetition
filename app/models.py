@@ -253,6 +253,10 @@ class Word(Card):
     __tablename__ = 'word'
     id = db.Column(db.Integer, db.ForeignKey('card.id'), primary_key=True)
 
+    __mapper_args__ = {
+        'polymorphic_identity': 'word',
+    }
+
     @abc.abstractmethod
     def get_questions(self):
         return
@@ -260,6 +264,26 @@ class Word(Card):
     @abc.abstractmethod
     def get_answers(self):
         return
+
+
+class SpanishWord(Word):
+    __tablename__ = 'spanish_word'
+    id = db.Column(db.Integer, db.ForeignKey('word.id'), primary_key=True)
+    spanish = db.Column(db.String(128))
+    english = db.Column(db.String(128))
+
+    def __repr__(self):
+        return '<{}>'.format(self.spanish)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'spanish_word',
+    }
+
+    def get_questions(self):
+        return self.spanish,
+
+    def get_answers(self):
+        return self.english,
 
 
 class ChineseWord(Word):
@@ -276,7 +300,7 @@ class ChineseWord(Word):
         return '<{}>'.format(self.zi_simp)
 
     __mapper_args__ = {
-        'polymorphic_identity': 'word',
+        'polymorphic_identity': 'chinese_word',
     }
 
     def get_questions(self):
