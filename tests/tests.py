@@ -4,7 +4,6 @@ from app import app, db
 from app.models import (
     Deck,
     Card,
-    Word,
     LanguageDeck
 )
 from queue import PriorityQueue

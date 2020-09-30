@@ -252,6 +252,19 @@ class ArticleWord(Card):
 class Word(Card):
     __tablename__ = 'word'
     id = db.Column(db.Integer, db.ForeignKey('card.id'), primary_key=True)
+
+    @abc.abstractmethod
+    def get_questions(self):
+        return
+
+    @abc.abstractmethod
+    def get_answers(self):
+        return
+
+
+class ChineseWord(Word):
+    __tablename__ = 'chinese_word'
+    id = db.Column(db.Integer, db.ForeignKey('word.id'), primary_key=True)
     zi_simp = db.Column(db.String(12), index=True)
     zi_trad = db.Column(db.String(12), index=True)
     pinyin_number = db.Column(db.String(80), index=True)

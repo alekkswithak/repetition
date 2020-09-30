@@ -3,7 +3,7 @@ import re
 from app.scraper.scraper import Scraper
 from app.models import db
 from app.models import (
-    Word,
+    ChineseWord,
     Card,
     Deck,
     LanguageDeck
@@ -36,11 +36,11 @@ def read_chinese_dictionary():
                 'english': english,
             }
             if 'variant of' not in english:
-                w = Word(**fields)
+                w = ChineseWord(**fields)
                 db.session.add(w)
     db.session.commit()
 
-    return Word.query.all()
+    #return ChineseWord.query.all()
 
 
 def read_hsk():
@@ -62,7 +62,7 @@ def read_hsk():
                     'english': data[4],
                     'hsk': x,
                 }
-                w = Word(**fields)
+                w = ChineseWord(**fields)
                 db.session.add(w)
     db.session.commit()
 
@@ -77,8 +77,11 @@ def make_decks():
         db.session.add(d)
     db.session.commit()
 
+
 def make_chinese_decks():
-    words = Word.query.filter(Word.hsk.isnot(None))
+    words = ChineseWord.query.filter(
+        ChineseWord.hsk.isnot(None)
+    )
     decks = {
         n: LanguageDeck(
             name='HSK{}'.format(n),

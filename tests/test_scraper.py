@@ -1,5 +1,5 @@
 from app.scraper.scraper import Scraper
-from app.models import Word
+from app.models import ChineseWord
 from app import db, app
 from procs import read_hsk
 from collections import defaultdict
@@ -40,7 +40,7 @@ class ScraperTest(unittest.TestCase):
         #  print(len([w for w in Word.query.all() if w.hsk]))
         existing_words = {
             w.zi_simp: w for w in
-            [w for w in Word.query.all() if w.hsk]
+            [w for w in ChineseWord.query.all() if w.hsk]
         }
         for word_text, freq in scraper.words.items():
             if word_text in existing_words:

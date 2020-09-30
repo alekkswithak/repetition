@@ -1,5 +1,5 @@
 import jieba
-from app.models import ArticleDeck, Word, ArticleWord
+from app.models import ArticleDeck, ChineseWord, ArticleWord
 from app import db
 from lxml import html
 from collections import Counter
@@ -42,13 +42,13 @@ class Scraper:
         deck = ArticleDeck(name=self.title)
         deck.url = self.url
 
-        existing_words = {w.zi_simp: w for w in Word.query.all()}
+        existing_words = {w.zi_simp: w for w in ChineseWord.query.all()}
         #  breakpoint()
         for word_text, freq in self.words.items():
             try:
                 word = existing_words[word_text]
             except KeyError:
-                word = Word(zi_simp=word_text)
+                word = ChineseWord(zi_simp=word_text)
 
             article_word = ArticleWord(
                 frequency=freq,

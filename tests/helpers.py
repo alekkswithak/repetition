@@ -1,7 +1,12 @@
 import os
 import re
 from app import app, db
-from app.models import Deck, Card, Word, LanguageDeck
+from app.models import (
+    Deck,
+    Card,
+    ChineseWord,
+    LanguageDeck
+)
 
 
 def get_chinese(context):
@@ -31,7 +36,7 @@ def make_test_deck():
                 'english': data[4],
                 'hsk': 6,
             }
-            words.append(Word(**fields))
+            words.append(ChineseWord(**fields))
         deck = Deck(name='Test')
         for w in words:
             db.session.add(w)
@@ -42,7 +47,7 @@ def make_test_deck():
 
 
 def make_chinese_decks():
-    words = Card.query.filter_by(type='word')
+    words = Card.query.filter_by(type='chinese_word')
     decks = {
         n: LanguageDeck(
             name='HSK{}'.format(n),
