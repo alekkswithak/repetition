@@ -1,4 +1,6 @@
 import jieba
+from nltk.tokenize.toktok import ToktokTokenizer
+import string
 import abc
 from app.models import (
     ArticleDeck,
@@ -43,7 +45,7 @@ class Scraper:
             return 'Spanish'
 
 
-class SpanishScraper(Scraper):
+class EuropeanScraper(Scraper):
 
     def process_page(self):
         page = urllib.request.urlopen(self.url)
@@ -61,11 +63,19 @@ class SpanishScraper(Scraper):
             # dummy tokenizer for now
             p = ('').join([
                 c for c in p
-                if c not in '.,:;()/?!"_=+*%[]'
+                if c not in string.punctuation
             ])
-            words = p.split(' ')
+            toktok = ToktokTokenizer()
+            words = toktok.tokenize(p)
             self.words += Counter([w.replace('\n', '').lower() for w in words])
         return self
+
+
+class GermanScraper(EuropeanScraper):
+    pass
+
+
+class SpanishScraper(EuropeanScraper):
 
     def create_article(self):
         deck = ArticleDeck(name=self.title)

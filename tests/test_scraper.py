@@ -1,4 +1,7 @@
-from app.scraper.scraper import ChineseScraper, SpanishScraper
+from app.scraper.scraper import (
+    ChineseScraper,
+    SpanishScraper
+)
 from app.models import ChineseWord
 from app import db, app
 from procs import read_hsk, read_chinese_dictionary
@@ -17,6 +20,16 @@ class ScraperTest(unittest.TestCase):
         db.drop_all()
 
 
+class GermanScraperTests(ScraperTest):
+
+    def test_process_page(self):
+        url = 'https://de.wikipedia.org/wiki/Spaced_repetition'
+        scraper = SpanishScraper(url)
+        scraper.process_page()
+        self.assertEqual(scraper.title, 'Spaced repetition')
+        self.assertTrue(scraper.words)
+
+
 class SpanishScraperTests(ScraperTest):
 
     def test_process_page(self):
@@ -31,7 +44,7 @@ class SpanishScraperTests(ScraperTest):
         scraper = SpanishScraper(url)
         article = scraper.process_page().create_article()
         print(article)
-        self.assertEqual(len(article.cards), 174)
+        self.assertEqual(len(article.cards), 173)
 
 
 class ChineseScraperTests(ScraperTest):
