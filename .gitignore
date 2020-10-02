@@ -4,5 +4,7 @@
 /migrations/*
 app/__pycache__/*
 tests/__pycache__/*
+app/scraper/__pycache__/*
 /app.db
 .vscode/settings.json
+*/__pycache__/*

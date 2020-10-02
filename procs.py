@@ -5,7 +5,7 @@ from app.scraper.scraper import Scraper
 from app.models import db
 from app.models import (
     ChineseWord,
-    SpanishWord,
+    EuropeanWord,
     Card,
     Deck,
     LanguageDeck
@@ -18,19 +18,31 @@ def get_chinese(context):
     return context
 
 
-def read_spanish_dictionary():
-    location = os.path.join(os.getcwd(), 'files\\spanish')
-    for filename in ('es-en.xml', 'es-en-verbs.xml'):
-        tree = ET.parse(os.path.join(location, filename))
-        root = tree.getroot()
-        for w in root.findall('l/w'):
-            spanish = w.find('c').text
-            english = w.find('d').text
-            db.session.add(SpanishWord(
-                spanish=spanish,
-                english=english
+def read_wiktionary(language):
+    word_english = Scraper('').scrape_language(language)
+    for g, e in word_english.items():
+        for w in g.split(','):
+            db.session.add(EuropeanWord(
+                language=language,
+                word=w.strip(),
+                english=('::').join(e)
             ))
     db.session.commit()
+
+
+# def read_spanish_dictionary():
+#     location = os.path.join(os.getcwd(), 'files\\spanish')
+#     for filename in ('es-en.xml', 'es-en-verbs.xml'):
+#         tree = ET.parse(os.path.join(location, filename))
+#         root = tree.getroot()
+#         for w in root.findall('l/w'):
+#             spanish = w.find('c').text
+#             english = w.find('d').text
+#             db.session.add(SpanishWord(
+#                 spanish=spanish,
+#                 english=english
+#             ))
+#     db.session.commit()
 
 
 def read_chinese_dictionary():

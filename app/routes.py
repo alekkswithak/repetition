@@ -3,7 +3,6 @@ from app import app
 from app.forms import URLForm
 from app.models import (
     Deck,
-    Card,
     ArticleDeck,
     LanguageDeck
 )

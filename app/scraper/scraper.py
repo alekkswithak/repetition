@@ -6,9 +6,10 @@ from app.models import (
     ArticleDeck,
     ChineseWord,
     ArticleWord,
-    SpanishWord
+    EuropeanWord
 )
 from app import db
+from app.scraper.wiktionary_scraper import WScraper
 from lxml import html
 from collections import Counter
 from hanziconv import HanziConv as hc
@@ -22,7 +23,7 @@ def get_chinese(context):
     return context
 
 
-class Scraper:
+class Scraper(WScraper):
 
     def __init__(self, url):
         self.url = url
@@ -72,6 +73,7 @@ class EuropeanScraper(Scraper):
 
 
 class GermanScraper(EuropeanScraper):
+
     pass
 
 
@@ -81,7 +83,12 @@ class SpanishScraper(EuropeanScraper):
         deck = ArticleDeck(name=self.title)
         deck.url = self.url
 
-        existing_words = {w.spanish: w for w in SpanishWord.query.all()}
+        existing_words = {
+            w.spanish: w
+            for w in
+            EuropeanWord.query.filter_by(
+                language='spanish'
+            )}
         for word_text, freq in self.words.items():
             if word_text in existing_words:
                 word = existing_words[word_text]
@@ -91,7 +98,9 @@ class SpanishScraper(EuropeanScraper):
                 )
                 deck.cards.append(article_word)
             else:
-                word = SpanishWord(spanish=word_text)
+                word = EuropeanWord(
+                    word=word_text,
+                    language='spanish')
                 article_word = ArticleWord(
                     frequency=freq,
                     word=word

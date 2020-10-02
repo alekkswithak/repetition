@@ -266,21 +266,22 @@ class Word(Card):
         return
 
 
-class SpanishWord(Word):
-    __tablename__ = 'spanish_word'
+class EuropeanWord(Word):
+    __tablename__ = 'european_word'
     id = db.Column(db.Integer, db.ForeignKey('word.id'), primary_key=True)
-    spanish = db.Column(db.String(128))
+    language = db.Column(db.String(32))
+    word = db.Column(db.String(128))
     english = db.Column(db.String(128))
 
     def __repr__(self):
-        return '<{}>'.format(self.spanish)
+        return '<{}>'.format(self.word)
 
     __mapper_args__ = {
-        'polymorphic_identity': 'spanish_word',
+        'polymorphic_identity': 'european_word',
     }
 
     def get_questions(self):
-        return self.spanish,
+        return self.word,
 
     def get_answers(self):
         return self.english,
