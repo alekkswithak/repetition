@@ -28,7 +28,7 @@ def flash(deck_id):
     redirect_url = url_for('process_game')
 
     return render_template(
-        'test_flash.html',
+        'flash.html',
         cards=cards,
         deck_id=deck.id,
         exit_integer=len(deck_cards),
@@ -51,7 +51,7 @@ def sort(deck_id):
     redirect_url = url_for('process_sort')
 
     return render_template(
-        'test_flash.html',
+        'flash.html',
         cards=cards,
         deck_id=deck.id,
         exit_integer=len(deck.get_unsorted_cards()),

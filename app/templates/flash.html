@@ -32,8 +32,9 @@
           <!-- <p class="lead">Complete with pre-defined file paths and responsive navigation!</p> -->
           <div id="card-answer-{{ c.i }}" style="display: none;">
             <ul class="list-unstyled">
-              <li>{{ c.answers[0] }}</li>
-              <li>{{ c.answers[1] }}</li>
+              {% for a in c.answers %}
+              <li>{{ a }}</li>
+              {% endfor %}
             </ul>
           </div>
         </div>

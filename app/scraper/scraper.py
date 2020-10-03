@@ -38,12 +38,14 @@ class Scraper(WScraper):
     def create_article(self):
         return
 
-    @classmethod
+    @property
     def url_language(self):
         if 'zh.wikipedia.org' in self.url:
-            return 'Chinese'
+            return 'chinese'
         elif 'es.wikipedia.org' in self.url:
-            return 'Spanish'
+            return 'spanish'
+        elif 'de.wikipedia.org' in self.url:
+            return 'german'
 
 
 class EuropeanScraper(Scraper):
@@ -71,23 +73,16 @@ class EuropeanScraper(Scraper):
             self.words += Counter([w.replace('\n', '').lower() for w in words])
         return self
 
-
-class GermanScraper(EuropeanScraper):
-
-    pass
-
-
-class SpanishScraper(EuropeanScraper):
-
     def create_article(self):
         deck = ArticleDeck(name=self.title)
         deck.url = self.url
+        language = self.url_language
 
         existing_words = {
-            w.spanish: w
+            w.word: w
             for w in
             EuropeanWord.query.filter_by(
-                language='spanish'
+                language=language
             )}
         for word_text, freq in self.words.items():
             if word_text in existing_words:
@@ -100,7 +95,7 @@ class SpanishScraper(EuropeanScraper):
             else:
                 word = EuropeanWord(
                     word=word_text,
-                    language='spanish')
+                    language=language)
                 article_word = ArticleWord(
                     frequency=freq,
                     word=word

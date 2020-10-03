@@ -1,6 +1,7 @@
 from app.scraper.scraper import (
+    Scraper,
     ChineseScraper,
-    SpanishScraper
+    EuropeanScraper
 )
 from app.models import ChineseWord
 from app import db, app
@@ -19,12 +20,16 @@ class ScraperTest(unittest.TestCase):
         db.session.remove()
         db.drop_all()
 
+    def test_url_language(self):
+        scraper = Scraper('https://de.wikipedia.org/wiki/Spaced_repetition')
+        self.assertEqual(scraper.url_language, 'german')
+
 
 class GermanScraperTests(ScraperTest):
 
     def test_process_page(self):
         url = 'https://de.wikipedia.org/wiki/Spaced_repetition'
-        scraper = SpanishScraper(url)
+        scraper = EuropeanScraper(url)
         scraper.process_page()
         self.assertEqual(scraper.title, 'Spaced repetition')
         self.assertTrue(scraper.words)
@@ -34,14 +39,14 @@ class SpanishScraperTests(ScraperTest):
 
     def test_process_page(self):
         url = 'https://es.wikipedia.org/wiki/Repaso_espaciado'
-        scraper = SpanishScraper(url)
+        scraper = EuropeanScraper(url)
         scraper.process_page()
         self.assertEqual(scraper.title, 'Repaso espaciado')
         self.assertTrue(scraper.words)
 
     def test_create_article(self):
         url = 'https://es.wikipedia.org/wiki/Repaso_espaciado'
-        scraper = SpanishScraper(url)
+        scraper = EuropeanScraper(url)
         article = scraper.process_page().create_article()
         print(article)
         self.assertEqual(len(article.cards), 173)

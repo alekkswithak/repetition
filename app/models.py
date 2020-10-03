@@ -284,7 +284,13 @@ class EuropeanWord(Word):
         return self.word,
 
     def get_answers(self):
-        return self.english,
+        if self.english is None:
+            return 'WTF',
+        return tuple(
+            a for a in
+            self.english.split('::')
+            if self.english
+        )
 
 
 class ChineseWord(Word):
