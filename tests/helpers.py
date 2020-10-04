@@ -1,18 +1,12 @@
 import os
-import re
-from app import app, db
+from app import db
+from app.helpers import get_chinese
 from app.models import (
     Deck,
     Card,
     ChineseWord,
     LanguageDeck
 )
-
-
-def get_chinese(context):
-    filter = re.compile(u'[^\u4E00-\u9FA5]')  # non-Chinese unicode range
-    context = filter.sub(r'', context)  # remove all non-Chinese characters
-    return context
 
 
 def make_test_deck():

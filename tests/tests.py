@@ -2,7 +2,6 @@ from datetime import datetime
 import unittest
 from app import app, db
 from app.models import (
-    Deck,
     Card,
     LanguageDeck
 )

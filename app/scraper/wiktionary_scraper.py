@@ -1,29 +1,29 @@
-from lxml import html
-import urllib.request
-import random
-from xml.etree import cElementTree as ET
-from collections import defaultdict
 import string
+import urllib.request
+from collections import defaultdict
+from lxml import html
+
+
+BASE_URL = 'https://en.wiktionary.org/wiki/User:Matthias_Buchmeier/en-de-'
 
 
 class WScraper:
 
-    @property
     def urls(self):
         return {
             'german': [
-                ('https://en.wiktionary.org/wiki/User:Matthias_Buchmeier/en-de-{}').format(x)
+                (BASE_URL + '{}').format(x)
                 for x in 'abcdefghijklmnopqrstuvwxyz'
             ],
             'spanish': [
-                ('https://en.wiktionary.org/wiki/User:Matthias_Buchmeier/en-es-{}').format(x)
+                (BASE_URL + '{}').format(x)
                 for x in 'abcdefghijklmnopqrstuvwxyz'
             ]
         }
 
     def scrape_language(self, language):
         out = defaultdict(list)
-        for url in self.urls[language]:
+        for url in self.urls()[language]:
             page = urllib.request.urlopen(url)
             page_bytes = page.read()
             html_string = page_bytes.decode("utf8")
@@ -35,8 +35,12 @@ class WScraper:
                 german = tr.text_content().replace(
                     '\n', ''
                 ).split('::')[1].strip()
+
+                english = tr.text_content().replace(
+                    '\n', ''
+                ).split('::')[0].strip()
+
                 words = german.split(',')
-                english = tr.text_content().replace('\n', '').split('::')[0].strip()
                 for w in words:
                     sanitised_w = w.split('{')[0].strip()
                     w = ('').join([
@@ -46,7 +50,4 @@ class WScraper:
                     if len(w.split(' ')) == 1:
                         out[w].append(english)
 
-            #print({k: out[k] for k in random.sample(list(out), 10)})
-
         return out
-

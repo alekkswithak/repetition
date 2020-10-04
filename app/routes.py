@@ -11,27 +11,15 @@ from app.helpers import get_scraper
 
 @app.route('/flash/<int:deck_id>')
 def flash(deck_id):
-    #deck = Deck.query.filter_by(name='HSK6')[0]
     deck = Deck.query.get(deck_id)
-    deck_cards = deck.get_learning_cards()
-
-    # TODO: turn into model method
-    cards = []
-    i = 0
-    for c in deck_cards:
-        tc = c.get_dict()
-        tc['i'] = i
-        tc['ease'] = c.ease
-        i += 1
-        cards.append(tc)
-
+    cards = deck.get_flash_cards()
     redirect_url = url_for('process_game')
 
     return render_template(
         'flash.html',
         cards=cards,
         deck_id=deck.id,
-        exit_integer=len(deck_cards),
+        exit_integer=len(cards),
         redirect_url=redirect_url
     )
 
@@ -39,22 +27,14 @@ def flash(deck_id):
 @app.route('/sort/<int:deck_id>')
 def sort(deck_id):
     deck = Deck.query.get(deck_id)
-    cards = []
-    i = 0
-    for c in deck.get_unsorted_cards():
-        tc = c.get_dict()
-        tc['i'] = i
-        tc['ease'] = c.ease
-        i += 1
-        cards.append(tc)
-
+    cards = deck.get_flash_cards(sorting=True)
     redirect_url = url_for('process_sort')
 
     return render_template(
         'flash.html',
         cards=cards,
         deck_id=deck.id,
-        exit_integer=len(deck.get_unsorted_cards()),
+        exit_integer=len(cards),
         redirect_url=redirect_url
     )
 
@@ -87,8 +67,8 @@ def process_game():
 
 
 @app.route('/')
-@app.route('/index')
-def index():
+@app.route('/decks')
+def decks():
     user = {'username': '学生'}
     decks = LanguageDeck.get_all_json()
     return render_template(
@@ -101,7 +81,7 @@ def index():
 
 @app.route('/articles', methods=['GET', 'POST'])
 def articles():
-    user = {'username': '学生'}
+    #  user = {'username': '学生'}
     form = URLForm()
     url = ''
     if form.validate_on_submit():
@@ -121,10 +101,3 @@ def articles():
 def browse_deck(deck_id):
     deck = Deck.query.get(id)
     return render_template('browse_deck.html', deck=deck)
-
-
-@app.route('/deck_browse/')
-def browse_cards():
-    deck = Deck.query.filter_by(name='HSK6')[0]
-    cards = deck.see_cards()
-    return render_template('browse_card.html', cards=cards)

@@ -1,7 +1,7 @@
 import os
-import re
-from xml.etree import cElementTree as ET
+from app.helpers import get_chinese
 from app.scraper.scraper import Scraper
+from app.scraper.wiktionary_scraper import WScraper
 from app.models import db
 from app.models import (
     ChineseWord,
@@ -12,14 +12,8 @@ from app.models import (
 )
 
 
-def get_chinese(context):
-    filter = re.compile(u'[^\u4E00-\u9FA5]')  # non-Chinese unicode range
-    context = filter.sub(r'', context)  # remove all non-Chinese characters
-    return context
-
-
 def read_wiktionary(language):
-    word_english = Scraper('').scrape_language(language)
+    word_english = WScraper().scrape_language(language)
     for g, e in word_english.items():
         for w in g.split(','):
             db.session.add(EuropeanWord(
@@ -30,24 +24,13 @@ def read_wiktionary(language):
     db.session.commit()
 
 
-# def read_spanish_dictionary():
-#     location = os.path.join(os.getcwd(), 'files\\spanish')
-#     for filename in ('es-en.xml', 'es-en-verbs.xml'):
-#         tree = ET.parse(os.path.join(location, filename))
-#         root = tree.getroot()
-#         for w in root.findall('l/w'):
-#             spanish = w.find('c').text
-#             english = w.find('d').text
-#             db.session.add(SpanishWord(
-#                 spanish=spanish,
-#                 english=english
-#             ))
-#     db.session.commit()
-
-
 def read_chinese_dictionary():
     location = os.path.join(os.getcwd(), 'files')
-    with open(os.path.join(location, 'cedict.txt'), errors='ignore', encoding='utf-8') as f:
+    with open(
+        os.path.join(location, 'cedict.txt'),
+        errors='ignore',
+        encoding='utf-8'
+    ) as f:
         raw = f.read()
         lines = raw.split('\n')
         structures = set(len(l.split('\t')) for l in lines)
@@ -69,7 +52,11 @@ def read_chinese_dictionary():
                 db.session.add(w)
     db.session.commit()
 
-    #return ChineseWord.query.all()
+
+def read_all_dict()@
+    read_wiktionary('german')
+    read_wiktionary('spanish')
+    read_chinese_dictionary()
 
 
 def read_hsk():
@@ -142,4 +129,3 @@ def read_sentences():
         assert len(structures) == 1
         for l in lines:
             pass
-            # db magic here

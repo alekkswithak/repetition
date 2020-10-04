@@ -5,7 +5,7 @@ from app.scraper.scraper import (
 )
 from app.models import ChineseWord
 from app import db, app
-from procs import read_hsk, read_chinese_dictionary
+from procs import read_hsk
 from collections import defaultdict, Counter
 import unittest
 
@@ -62,7 +62,6 @@ class ChineseScraperTests(ScraperTest):
         self.assertTrue(scraper.words)
 
     def test_create_article(self):
-        #  read_chinese_dictionary()
         url = 'https://zh.wikipedia.org/wiki/%E9%97%B4%E9%9A%94%E9%87%8D%E5%A4%8D'
         scraper = ChineseScraper(url)
         article = scraper.process_page().create_article()
@@ -76,14 +75,13 @@ class ChineseScraperTests(ScraperTest):
         article = scraper.create_article()
         self.assertEqual(len(article.cards), 4)
 
-    def test_scraped_words(self):
+    def test_scraped_chinese_words(self):
         url = 'https://zh.wikipedia.org/wiki/%E9%97%B4%E9%9A%94%E9%87%8D%E5%A4%8D'
         scraper = ChineseScraper(url)
         scraper.process_page()
         found = []
         not_found = []
         read_hsk()
-        #  print(len([w for w in Word.query.all() if w.hsk]))
         existing_words = {
             w.zi_simp: w for w in
             [w for w in ChineseWord.query.all() if w.hsk]
@@ -93,15 +91,12 @@ class ChineseScraperTests(ScraperTest):
                 found.append(word_text)
             else:
                 not_found.append(word_text)
-        #  print(not_found)
         ew = [w for w, i in existing_words.items()]
         out = defaultdict(list)
         for w in ew:
             for n in not_found:
                 if n in w or w in n:
                     out[n].append(w)
-        #  print(out)
-        #  breakpoint()
         self.assertEqual(len(found), 100)
 
 

@@ -26,10 +26,8 @@
       <div class="row">
         <div class="col-lg-12 text-center">
           <p>{{ c.i }}/{{ exit_integer }}</p>
-          <!-- <h1 class="mt-5">A Bootstrap 4 Starter Template</h1> -->
           <h1 class="mt-5">{{ c.questions[0] }}</h1>
           <h2 class="mt-5">{{ c.questions[1] }}</h2>
-          <!-- <p class="lead">Complete with pre-defined file paths and responsive navigation!</p> -->
           <div id="card-answer-{{ c.i }}" style="display: none;">
             <ul class="list-unstyled">
               {% for a in c.answers %}

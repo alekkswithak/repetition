@@ -1,17 +1,12 @@
-from app import db
-from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime
-import math
 import abc
-import json
+import math
 from collections import defaultdict
+from datetime import datetime
+from sqlalchemy.ext.declarative import declarative_base
+from app import db
+
 
 Base = declarative_base()
-
-# carddeck = db.Table('carddeck',
-#     db.Column('card_id', db.Integer, db.ForeignKey('card.id')),
-#     db.Column('deck_id', db.Integer, db.ForeignKey('deck.id'))
-# )
 
 
 class Card(db.Model, Base):
@@ -76,7 +71,7 @@ class Deck(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
     type = db.Column(db.String(50))
-    card_number = db.Column(db.Integer, default=20)  # old cards per go and initial number of cards
+    card_number = db.Column(db.Integer, default=20)  # old/init cards per go
     new_card_number = db.Column(db.Integer, default=10)  # new cards per go
     card_counter = db.Column(db.Integer, default=0)
     multiplier = db.Column(db.Integer, default=2)  # ease multiplier
@@ -180,31 +175,28 @@ class Deck(db.Model):
     def card_total(self):
         return len(self.cards)
 
-    #  TODO: make these fields?
+    def get_flash_cards(self, sorting=False):
+        flash_cards = []
+        if sorting is False:
+            deck_cards = self.get_learning_cards()
+        else:
+            deck_cards = self.get_unsorted_cards()
+        i = 0
+        for c in deck_cards:
+            tc = c.get_dict()
+            tc['i'] = i
+            tc['ease'] = c.ease
+            i += 1
+            flash_cards.append(tc)
+
+        return flash_cards
+
     def seen_total(self):
         to_study = [c for c in self.cards if c.to_study]
         return len([c for c in to_study if c.last_time])
 
     def to_study_total(self):
         return len([c for c in self.cards if c.to_study])
-
-
-class ArticleDeck(Deck):
-    __tablename__ = 'article_deck'
-    id = db.Column(db.Integer, db.ForeignKey('deck.id'), primary_key=True)
-    url = db.Column(db.String(512))
-    title = db.Column(db.String(64))
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'article_deck',
-    }
-
-    #TODO: make AD inherit LD and combine these methods
-    @classmethod
-    def get_all_json(cls):
-        decks = cls.query.all()
-        decks_json = {' ': [d for d in decks]}
-        return decks_json
 
 
 class LanguageDeck(Deck):
@@ -226,6 +218,28 @@ class LanguageDeck(Deck):
             else:
                 decks_json[d.language] = [d]
         return decks_json
+
+
+class ArticleDeck(LanguageDeck):
+    __tablename__ = 'article_deck'
+    id = db.Column(
+        db.Integer,
+        db.ForeignKey('language_deck.id'),
+        primary_key=True
+    )
+    url = db.Column(db.String(512))
+    title = db.Column(db.String(64))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'article_deck',
+    }
+
+    ##TODO: make AD inherit LD and combine these methods
+    # @classmethod
+    # def get_all_json(cls):
+    #     decks = cls.query.all()
+    #     decks_json = {' ': [d for d in decks]}
+    #     return decks_json
 
 
 class ArticleWord(Card):
@@ -289,7 +303,6 @@ class EuropeanWord(Word):
         return tuple(
             a for a in
             self.english.split('::')
-            if self.english
         )
 
 
@@ -324,12 +337,3 @@ class ChineseWord(Word):
             self.english
         )
         return a
-
-
-# class Sentence(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     zi = db.Column(db.String(120), index=True, unique=True)
-#     pinyin = db.Column(db.String(80), index=True)
-#     english = db.Column(db.String(160))
-
-

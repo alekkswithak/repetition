@@ -63,7 +63,6 @@ class EuropeanScraper(Scraper):
         paragraphs += tree.xpath('//div[@class="mw-parser-output"]/p/a/text()')
 
         for p in paragraphs:
-            # dummy tokenizer for now
             p = ('').join([
                 c for c in p
                 if c not in string.punctuation
@@ -158,4 +157,3 @@ class ChineseScraper(Scraper):
         db.session.add(deck)
         db.session.commit()
         return deck
-
