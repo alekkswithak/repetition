@@ -1,6 +1,11 @@
-from flask import render_template, redirect, url_for, request
-from app import app
-from app.forms import URLForm
+from flask import (
+    render_template,
+    redirect,
+    url_for,
+    request
+)
+from app import app, db
+from app.forms import URLForm, DeckSettingsForm
 from app.models import (
     Deck,
     ArticleDeck,
@@ -99,5 +104,27 @@ def articles():
 
 @app.route('/deck/<int:deck_id>')
 def browse_deck(deck_id):
-    deck = Deck.query.get(id)
+    deck = Deck.query.get(deck_id)
     return render_template('browse_deck.html', deck=deck)
+
+
+@app.route('/deck_settings/<int:deck_id>', methods=['GET', 'POST'])
+def deck_settings(deck_id):
+    form = DeckSettingsForm()
+    deck = Deck.query.get(deck_id)
+    if form.validate_on_submit():
+        #deck.update_settings(form)
+        deck.name = form.name.data
+        deck.card_number = form.card_number.data
+        deck.new_card_number = form.new_card_number.data
+        deck.multiplier = form.multiplier.data
+        deck.entry_interval = form.entry_interval.data
+        db.session.commit()
+
+    form.name.data = deck.name
+    form.card_number.data = deck.card_number
+    form.new_card_number.data = deck.new_card_number
+    form.multiplier.data = deck.multiplier
+    form.entry_interval.data = deck.entry_interval
+
+    return render_template('deck_settings.html', deck=deck, form=form)
