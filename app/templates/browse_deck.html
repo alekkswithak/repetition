@@ -1,12 +1,27 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>{{ deck.name }} - all cards</h1>
+<br>
+<div class='container'>
+    <h2>{{ deck.name }} - all cards</h2>
+    <!-- <div class="card-deck"> -->
+        <div class="row">
     {% for c in deck.cards %}
-    <div>
-        <h2>{{ c.zi_simp }}</h2>
-        <p>{{ c.pinyin_tone }}</p>
-        <p>{{ c.english }}</p>
+    <div class="col-sm-3">
+        <br>
+            <div class='card'>
+                <div class="card-body">
+                    <h2>{{ c.get_questions()[0] }}</h2>
+                    <ul class="list-unstyled">
+                        {% for a in c.get_answers()[0:2] %}
+                        <li>{{ a }}</li>
+                        {% endfor %}
+                      </ul>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
+<!-- </div> -->
+</div>
 {% endblock %}

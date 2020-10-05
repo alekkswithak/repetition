@@ -13,7 +13,18 @@ from app.models import (
 
 
 def read_wiktionary(language):
-    word_english = WScraper().scrape_language(language)
+    word_english = WScraper().scrape_language_to_english(language)
+    for g, e in word_english.items():
+        db.session.add(EuropeanWord(
+            language=language,
+            word=g.strip(),
+            english=('::').join(e)
+        ))
+    db.session.commit()
+
+
+def read_wiktionary_older(language):
+    word_english = WScraper().scrape_english_to_language(language)
     for g, e in word_english.items():
         for w in g.split(','):
             db.session.add(EuropeanWord(
@@ -53,7 +64,7 @@ def read_chinese_dictionary():
     db.session.commit()
 
 
-def read_all_dict()@
+def read_all_dict():
     read_wiktionary('german')
     read_wiktionary('spanish')
     read_chinese_dictionary()

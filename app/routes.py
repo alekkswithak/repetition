@@ -113,7 +113,8 @@ def deck_settings(deck_id):
     form = DeckSettingsForm()
     deck = Deck.query.get(deck_id)
     if form.validate_on_submit():
-        #deck.update_settings(form)
+        #  TODO: deck method
+        #  deck.update_settings(form)
         deck.name = form.name.data
         deck.card_number = form.card_number.data
         deck.new_card_number = form.new_card_number.data
@@ -121,6 +122,7 @@ def deck_settings(deck_id):
         deck.entry_interval = form.entry_interval.data
         db.session.commit()
 
+    #  TODO: form method
     form.name.data = deck.name
     form.card_number.data = deck.card_number
     form.new_card_number.data = deck.new_card_number

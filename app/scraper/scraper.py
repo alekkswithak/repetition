@@ -1,5 +1,6 @@
 import jieba
 from nltk.tokenize.toktok import ToktokTokenizer
+import translators as ts
 import string
 import abc
 from app.models import (
@@ -92,8 +93,10 @@ class EuropeanScraper(Scraper):
                 )
                 deck.cards.append(article_word)
             else:
+                english = ts.bing(word_text, to_language='en').lower()
                 word = EuropeanWord(
                     word=word_text,
+                    english=english,
                     language=language)
                 article_word = ArticleWord(
                     frequency=freq,

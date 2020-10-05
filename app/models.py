@@ -234,13 +234,6 @@ class ArticleDeck(LanguageDeck):
         'polymorphic_identity': 'article_deck',
     }
 
-    ##TODO: make AD inherit LD and combine these methods
-    # @classmethod
-    # def get_all_json(cls):
-    #     decks = cls.query.all()
-    #     decks_json = {' ': [d for d in decks]}
-    #     return decks_json
-
 
 class ArticleWord(Card):
     __tablename__ = 'article_word'
