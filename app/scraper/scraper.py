@@ -10,7 +10,6 @@ from app.models import (
     EuropeanWord
 )
 from app import db
-from app.scraper.wiktionary_scraper import WScraper
 from lxml import html
 from collections import Counter
 from hanziconv import HanziConv as hc
@@ -24,7 +23,7 @@ def get_chinese(context):
     return context
 
 
-class Scraper(WScraper):
+class Scraper():
 
     def __init__(self, url):
         self.url = url
@@ -66,7 +65,7 @@ class EuropeanScraper(Scraper):
         for p in paragraphs:
             p = ('').join([
                 c for c in p
-                if c not in string.punctuation
+                if c not in string.punctuation+string.digits
             ])
             toktok = ToktokTokenizer()
             words = toktok.tokenize(p)
@@ -87,22 +86,17 @@ class EuropeanScraper(Scraper):
         for word_text, freq in self.words.items():
             if word_text in existing_words:
                 word = existing_words[word_text]
-                article_word = ArticleWord(
-                    frequency=freq,
-                    word=word
-                )
-                deck.cards.append(article_word)
             else:
                 english = ts.bing(word_text, to_language='en').lower()
                 word = EuropeanWord(
                     word=word_text,
                     english=english,
                     language=language)
-                article_word = ArticleWord(
-                    frequency=freq,
-                    word=word
-                )
-                deck.cards.append(article_word)
+            article_word = ArticleWord(
+                frequency=freq,
+                word=word
+            )
+            deck.cards.append(article_word)
         db.session.add(deck)
         db.session.commit()
         return deck
@@ -125,7 +119,7 @@ class ChineseScraper(Scraper):
         for p in paragraphs:
             w = get_chinese(p)
             x = hc.toSimplified(w)
-            self.words += Counter(jieba.cut(x, cut_all=False))
+            self.words += Counter(jieba.cut(x, cut_all=True))
 
         return self
 
@@ -133,29 +127,29 @@ class ChineseScraper(Scraper):
         deck = ArticleDeck(name=self.title)
         deck.url = self.url
 
+        hsk_words = {w.zi_simp: w for w in ChineseWord.query.all() if w.hsk}
         existing_words = {w.zi_simp: w for w in ChineseWord.query.all()}
+        # breakpoint()
         for word_text, freq in self.words.items():
-            if word_text in existing_words:
+            if word_text in hsk_words:
+                word = hsk_words[word_text]
+            elif word_text in existing_words:
                 word = existing_words[word_text]
-                article_word = ArticleWord(
-                    frequency=freq,
-                    word=word
-                )
-                deck.cards.append(article_word)
-
             else:
-                sub_words = jieba.cut(word_text, cut_all=True)
-                for w in sub_words:
-                    if w in existing_words:
-                        word = existing_words[w]
-                    else:
-                        word = ChineseWord(zi_simp=w)
+                continue
+            # else:
+            #     sub_words = jieba.cut(word_text, cut_all=True)
+            #     for w in sub_words:
+            #         if w in existing_words:
+            #             word = existing_words[w]
+            #         else:
+            #             word = ChineseWord(zi_simp=w)
 
-                    article_word = ArticleWord(
-                        frequency=freq,
-                        word=word
-                    )
-                    deck.cards.append(article_word)
+            article_word = ArticleWord(
+                frequency=freq,
+                word=word
+            )
+            deck.cards.append(article_word)
 
         db.session.add(deck)
         db.session.commit()

@@ -64,10 +64,9 @@ def read_chinese_dictionary():
     db.session.commit()
 
 
-def read_all_dict():
+def read_all_euro():
     read_wiktionary('german')
     read_wiktionary('spanish')
-    read_chinese_dictionary()
 
 
 def read_hsk():
@@ -92,6 +91,11 @@ def read_hsk():
                 w = ChineseWord(**fields)
                 db.session.add(w)
     db.session.commit()
+
+
+def read_all_chinese():
+    read_chinese_dictionary()
+    read_hsk()
 
 
 def make_decks():
