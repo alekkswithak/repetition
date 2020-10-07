@@ -9,22 +9,28 @@ from app import db
 Base = declarative_base()
 
 
+class User(db.Model):
+    __tablename__ = 'user'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), index=True, unique=True)
+    email = db.Column(db.String(120), index=True, unique=True)
+    password_hash = db.Column(db.String(128))
+
+    cards = db.relationship('UserCard', back_populates='user')
+    decks = db.relationship('UserDeck', back_populates='user')
+
+    def __repr__(self):
+        return '<User {}>'.format(self.username)
+
+
 class Card(db.Model, Base):
     __metaclass__ = abc.ABCMeta
     __tablename__ = 'card'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
     type = db.Column(db.String(50))
-    ease = db.Column(db.Integer, default=1)
-    last_time = db.Column(db.DateTime, default=None)
-    priority = db.Column(db.Boolean, default=False)
-    learning = db.Column(db.Boolean, default=False)  # for reprioritisation
     deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
     deck = db.relationship('Deck', back_populates='cards')
-
-    sorted = db.Column(db.Boolean, default=False)
-    to_study = db.Column(db.Boolean, default=True)
-    frequency = db.Column(db.Integer)
 
     __mapper_args__ = {
         'polymorphic_identity': 'card',
@@ -53,7 +59,6 @@ class Card(db.Model, Base):
         else:
             self.learning = False
         self.last_time = datetime.now()
-        self.deck.active_card_id = None
 
     def unknown(self):
         ease = self.ease / self.deck.multiplier
@@ -63,23 +68,43 @@ class Card(db.Model, Base):
             self.ease = 1
         self.priority = True
         self.last_time = datetime.now()
-        self.deck.active_card_id = None
+
+
+class UserCard(db.Model):
+    __tablename__ = 'user_card'
+    id = db.Column(db.Integer, primary_key=True)
+    ease = db.Column(db.Integer, default=1)
+    last_time = db.Column(db.DateTime, default=None)
+    priority = db.Column(db.Boolean, default=False)
+    learning = db.Column(db.Boolean, default=False)  # for reprioritisation
+    sorted = db.Column(db.Boolean, default=False)
+    to_study = db.Column(db.Boolean, default=True)
+    frequency = db.Column(db.Integer)
+
+    card_id = db.Column(db.Integer, db.ForeignKey('card.id'))
+    card = db.relationship(
+        'Card',
+        foreign_keys=[card_id],
+    )
+
+    deck_id = db.Column(db.Integer, db.ForeignKey('user_deck.id'))
+    deck = db.relationship(
+        'UserDeck',
+        foreign_keys=[deck_id],
+    )
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user_deck.id'))
+    user = db.relationship(
+        'User',
+        foreign_keys=[user_id],
+    )
 
 
 class Deck(db.Model):
     __tablename__ = 'deck'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50))
     type = db.Column(db.String(50))
-    card_number = db.Column(db.Integer, default=20)  # old/init cards per go
-    new_card_number = db.Column(db.Integer, default=10)  # new cards per go
-    card_counter = db.Column(db.Integer, default=0)
-    multiplier = db.Column(db.Integer, default=2)  # ease multiplier
-    entry_interval = db.Column(db.Integer, default=5)  # new card entry
-    last_date = db.Column(db.Date, default=None)
-
     cards = db.relationship('Card', back_populates='deck')
-    active_card_id = db.Column(db.Integer, default=None)
 
     __mapper_args__ = {
         'polymorphic_identity': 'deck',
@@ -197,6 +222,30 @@ class Deck(db.Model):
 
     def to_study_total(self):
         return len([c for c in self.cards if c.to_study])
+
+
+class UserDeck(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    card_number = db.Column(db.Integer, default=20)  # old/init cards per go
+    new_card_number = db.Column(db.Integer, default=10)  # new cards per go
+    card_counter = db.Column(db.Integer, default=0)
+    multiplier = db.Column(db.Integer, default=2)  # ease multiplier
+    entry_interval = db.Column(db.Integer, default=5)  # new card entry
+    last_date = db.Column(db.Date, default=None)
+
+    cards = db.relationship('UserCard', back_populates='deck')
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship(
+        'User',
+        foreign_keys=[user_id],
+    )
+
+    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
+    deck = db.relationship(
+        'Deck',
+        foreign_keys=[deck_id],
+    )
 
 
 class LanguageDeck(Deck):
