@@ -31,7 +31,7 @@ def make_test_deck():
                 'hsk': 6,
             }
             words.append(ChineseWord(**fields))
-        deck = Deck(name='Test')
+        deck = Deck()
         for w in words:
             db.session.add(w)
             deck.cards.append(w)

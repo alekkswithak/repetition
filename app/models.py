@@ -52,23 +52,6 @@ class Card(db.Model, Base):
             'answers': self.get_answers()
         }
 
-    def known(self):
-        self.ease *= self.deck.multiplier
-        if self.priority is True:
-            self.priority = False
-        else:
-            self.learning = False
-        self.last_time = datetime.now()
-
-    def unknown(self):
-        ease = self.ease / self.deck.multiplier
-        if ease > 1:
-            self.ease = math.floor(ease)
-        else:
-            self.ease = 1
-        self.priority = True
-        self.last_time = datetime.now()
-
 
 class UserCard(db.Model):
     __tablename__ = 'user_card'
@@ -93,17 +76,38 @@ class UserCard(db.Model):
         foreign_keys=[deck_id],
     )
 
-    user_id = db.Column(db.Integer, db.ForeignKey('user_deck.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship(
         'User',
         foreign_keys=[user_id],
     )
+
+    def __repr__(self):
+        return '<UserCard "{}">'.format(self.card.get_questions()[0])
+
+    def known(self):
+        self.ease *= self.deck.multiplier
+        if self.priority is True:
+            self.priority = False
+        else:
+            self.learning = False
+        self.last_time = datetime.now()
+
+    def unknown(self):
+        ease = self.ease / self.deck.multiplier
+        if ease > 1:
+            self.ease = math.floor(ease)
+        else:
+            self.ease = 1
+        self.priority = True
+        self.last_time = datetime.now()
 
 
 class Deck(db.Model):
     __tablename__ = 'deck'
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(50))
+    name = db.Column(db.String(50))
     cards = db.relationship('Card', back_populates='deck')
 
     __mapper_args__ = {
@@ -111,11 +115,53 @@ class Deck(db.Model):
         'polymorphic_on': type
     }
 
+    def __repr__(self):
+        return '<Deck "{}">'.format(self.name)
+
+
+class UserDeck(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    card_number = db.Column(db.Integer, default=20)  # old/init cards per go
+    new_card_number = db.Column(db.Integer, default=10)  # new cards per go
+    card_counter = db.Column(db.Integer, default=0)
+    multiplier = db.Column(db.Integer, default=2)  # ease multiplier
+    entry_interval = db.Column(db.Integer, default=5)  # new card entry
+    last_date = db.Column(db.Date, default=None)
+
+    cards = db.relationship('UserCard', back_populates='deck')
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship(
+        'User',
+        foreign_keys=[user_id],
+    )
+
+    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
+    deck = db.relationship(
+        'Deck',
+        foreign_keys=[deck_id],
+    )
+
+    def populate(self, deck):
+        self.deck = deck
+        for c in deck.cards:
+            self.cards.append(
+                UserCard(card=c, deck=self)
+            )
+        db.session.add(self)
+        db.session.commit()
+
+    def organise_cards(self):
+        self.seen_cards = [c for c in self.cards if c.last_time is not None]
+        self.unseen_cards = [c for c in self.cards if c.last_time is None]
+        self.learning_cards = [c for c in self.cards if c.learning]
+
     def shuffle(self):
         self.organise_cards()
         if len(self.seen_cards) == 0:
             for c in self.unseen_cards[0:self.card_number]:
                 c.learning = True
+            db.session.commit()
             return
 
         min_time = min(self.seen_cards, key=lambda c: c.last_time).last_time
@@ -146,18 +192,10 @@ class Deck(db.Model):
 
         db.session.commit()
 
-    def __repr__(self):
-        return '<Deck "{}">'.format(self.name)
-
     def get_learning_cards(self):
         if len([c for c in self.cards if c.learning]) == 0:
             self.shuffle()
         return [c for c in self.cards if c.learning]
-
-    def organise_cards(self):
-        self.seen_cards = [c for c in self.cards if c.last_time is not None]
-        self.unseen_cards = [c for c in self.cards if c.last_time is None]
-        self.learning_cards = [c for c in self.cards if c.learning]
 
     def play_outcomes(self, outcomes):
         """
@@ -173,7 +211,7 @@ class Deck(db.Model):
         for i in range(0, len(outcomes) - 1):
             outcome_row = outcomes[str(i+1)]
             card_id = int(outcome_row.get('id'))
-            card = Card.query.get(card_id)
+            card = UserCard.query.get(card_id)
             result = outcome_row.get('result')
             if result == 'z':
                 card.known()
@@ -222,30 +260,6 @@ class Deck(db.Model):
 
     def to_study_total(self):
         return len([c for c in self.cards if c.to_study])
-
-
-class UserDeck(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    card_number = db.Column(db.Integer, default=20)  # old/init cards per go
-    new_card_number = db.Column(db.Integer, default=10)  # new cards per go
-    card_counter = db.Column(db.Integer, default=0)
-    multiplier = db.Column(db.Integer, default=2)  # ease multiplier
-    entry_interval = db.Column(db.Integer, default=5)  # new card entry
-    last_date = db.Column(db.Date, default=None)
-
-    cards = db.relationship('UserCard', back_populates='deck')
-
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user = db.relationship(
-        'User',
-        foreign_keys=[user_id],
-    )
-
-    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
-    deck = db.relationship(
-        'Deck',
-        foreign_keys=[deck_id],
-    )
 
 
 class LanguageDeck(Deck):
