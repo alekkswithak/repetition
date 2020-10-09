@@ -8,6 +8,7 @@ from app import app, db
 from app.forms import URLForm, DeckSettingsForm
 from app.models import (
     Deck,
+    UserDeck,
     ArticleDeck,
     LanguageDeck
 )
@@ -16,7 +17,7 @@ from app.helpers import get_scraper
 
 @app.route('/flash/<int:deck_id>')
 def flash(deck_id):
-    deck = Deck.query.get(deck_id)
+    deck = UserDeck.query.get(deck_id)
     cards = deck.get_flash_cards()
     redirect_url = url_for('process_game')
 
@@ -31,7 +32,7 @@ def flash(deck_id):
 
 @app.route('/sort/<int:deck_id>')
 def sort(deck_id):
-    deck = Deck.query.get(deck_id)
+    deck = UserDeck.query.get(deck_id)
     cards = deck.get_flash_cards(sorting=True)
     redirect_url = url_for('process_sort')
 
@@ -48,7 +49,7 @@ def sort(deck_id):
 def process_sort():
     received = request.json
     deck_id = int(received['deck_id'])
-    deck = Deck.query.get(deck_id)
+    deck = UserDeck.query.get(deck_id)
     deck.process_sort(received)
     return redirect(url_for('flash', deck_id=deck_id))
 
@@ -66,7 +67,7 @@ def process_game():
 
     received = request.json
     deck_id = int(received['deck_id'])
-    deck = Deck.query.get(deck_id)
+    deck = UserDeck.query.get(deck_id)
     deck.play_outcomes(received)
     return redirect(url_for('flash', deck_id=deck_id))
 
@@ -75,7 +76,7 @@ def process_game():
 @app.route('/decks')
 def decks():
     user = {'username': '学生'}
-    decks = LanguageDeck.get_all_json()
+    decks = UserDeck.get_all_json(type='language_deck')
     return render_template(
         'decks.html',
         title='Home',
@@ -98,7 +99,9 @@ def articles():
         title='Articles',
         form=form,
         url=url,
-        language_decks=ArticleDeck.get_all_json()
+        language_decks=UserDeck.get_all_json(
+            type='article_deck'
+        )
     )
 
 

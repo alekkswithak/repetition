@@ -31,6 +31,7 @@ class Card(db.Model, Base):
     type = db.Column(db.String(50))
     deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
     deck = db.relationship('Deck', back_populates='cards')
+    frequency = db.Column(db.Integer)
 
     __mapper_args__ = {
         'polymorphic_identity': 'card',
@@ -62,7 +63,6 @@ class UserCard(db.Model):
     learning = db.Column(db.Boolean, default=False)  # for reprioritisation
     sorted = db.Column(db.Boolean, default=False)
     to_study = db.Column(db.Boolean, default=True)
-    frequency = db.Column(db.Integer)
 
     card_id = db.Column(db.Integer, db.ForeignKey('card.id'))
     card = db.relationship(
@@ -246,7 +246,7 @@ class UserDeck(db.Model):
             deck_cards = self.get_unsorted_cards()
         i = 0
         for c in deck_cards:
-            tc = c.get_dict()
+            tc = c.card.get_dict()
             tc['i'] = i
             tc['ease'] = c.ease
             i += 1
@@ -261,6 +261,17 @@ class UserDeck(db.Model):
     def to_study_total(self):
         return len([c for c in self.cards if c.to_study])
 
+    @classmethod
+    def get_all_json(cls, type):
+        decks = db.session.query(cls).join(Deck).filter_by(type=type)
+        decks_json = {}
+        for d in decks:
+            if d.deck.language in decks_json:
+                decks_json[d.deck.language].append(d)
+            else:
+                decks_json[d.deck.language] = [d]
+        return decks_json
+
 
 class LanguageDeck(Deck):
     __tablename__ = 'language_deck'
@@ -270,17 +281,6 @@ class LanguageDeck(Deck):
     __mapper_args__ = {
         'polymorphic_identity': 'language_deck',
     }
-
-    @classmethod
-    def get_all_json(cls):
-        decks = cls.query.all()
-        decks_json = {}
-        for d in decks:
-            if d.language in decks_json:
-                decks_json[d.language].append(d)
-            else:
-                decks_json[d.language] = [d]
-        return decks_json
 
 
 class ArticleDeck(LanguageDeck):

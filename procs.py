@@ -1,6 +1,6 @@
 import os
 from app.helpers import get_chinese
-from app.scraper.scraper import Scraper
+from app.scraper.scraper import Scraper, ChineseScraper
 from app.scraper.wiktionary_scraper import WScraper
 from app.models import db
 from app.models import (
@@ -8,7 +8,8 @@ from app.models import (
     EuropeanWord,
     Card,
     Deck,
-    LanguageDeck
+    LanguageDeck,
+    UserDeck,
 )
 
 
@@ -126,12 +127,23 @@ def make_chinese_decks():
     for _, d in decks.items():
         db.session.add(d)
     db.session.commit()
+    return decks
 
 
-def create_test_article():
+def create_chinese_article():
     url = 'https://zh.wikipedia.org/wiki/%E9%97%B4%E9%9A%94%E9%87%8D%E5%A4%8D'
-    scraper = Scraper(url)
-    scraper.process_page().create_article()
+    scraper = ChineseScraper(url)
+    return scraper.process_page().create_article()
+
+
+def create_all():
+    read_all_chinese()
+    read_all_euro()
+    for _, d in make_chinese_decks().items():
+        ud = UserDeck()
+        ud.populate(d)
+    ud = UserDeck()
+    ud.populate(create_chinese_article())
 
 
 def read_sentences():
