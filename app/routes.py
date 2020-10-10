@@ -9,8 +9,6 @@ from app.forms import URLForm, DeckSettingsForm
 from app.models import (
     Deck,
     UserDeck,
-    ArticleDeck,
-    LanguageDeck
 )
 from app.helpers import get_scraper
 
@@ -93,7 +91,10 @@ def articles():
     if form.validate_on_submit():
         url = form.url.data
         scraper = get_scraper(url)
-        scraper.process_page().create_article()
+        ud = UserDeck()
+        ud.populate(
+            scraper.process_page().create_article()
+        )
     return render_template(
         'articles.html',
         title='Articles',
