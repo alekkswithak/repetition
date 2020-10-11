@@ -85,6 +85,13 @@ class UserCard(db.Model):
     def __repr__(self):
         return '<UserCard "{}">'.format(self.card.get_questions()[0])
 
+    def get_dict(self):
+        return {
+            'id': self.id,
+            'questions': self.card.get_questions(),
+            'answers': self.card.get_answers()
+        }
+
     def known(self):
         self.ease *= self.deck.multiplier
         if self.priority is True:
@@ -223,7 +230,7 @@ class UserDeck(db.Model):
         for i in range(0, len(outcomes) - 1):
             outcome_row = outcomes[str(i+1)]
             card_id = int(outcome_row.get('id'))
-            card = Card.query.get(card_id)
+            card = UserCard.query.get(card_id)
             result = outcome_row.get('result')
             if result == 'z':
                 card.to_study = False
@@ -246,7 +253,7 @@ class UserDeck(db.Model):
             deck_cards = self.get_unsorted_cards()
         i = 0
         for c in deck_cards:
-            tc = c.card.get_dict()
+            tc = c.get_dict()
             tc['i'] = i
             tc['ease'] = c.ease
             i += 1
