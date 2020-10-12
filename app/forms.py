@@ -1,5 +1,11 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, IntegerField
+from wtforms import (
+    StringField,
+    SubmitField,
+    IntegerField,
+    PasswordField,
+    BooleanField
+)
 from wtforms.validators import DataRequired
 
 
@@ -15,3 +21,10 @@ class DeckSettingsForm(FlaskForm):
     multiplier = IntegerField('Multiplier', validators=[DataRequired()])
     entry_interval = IntegerField('Entry interval', validators=[DataRequired()])
     submit = SubmitField('submit')
+
+
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    remember_me = BooleanField('Remember Me')
+    submit = SubmitField('Sign In')
