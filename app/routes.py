@@ -13,7 +13,8 @@ from app import app, db
 from app.forms import (
     URLForm,
     DeckSettingsForm,
-    LoginForm
+    LoginForm,
+    RegistrationForm
 )
 from app.models import (
     Deck,
@@ -165,3 +166,17 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('decks'))
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('decks'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        return redirect(url_for('login'))
+    return render_template('register.html', title='Register', form=form)
