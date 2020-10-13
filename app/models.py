@@ -147,6 +147,20 @@ class Deck(db.Model):
     def __repr__(self):
         return '<Deck "{}">'.format(self.name)
 
+    @classmethod
+    def get_all_json(cls, type):
+        decks = db.session.query(cls).filter_by(type=type)
+        decks_json = {}
+        for d in decks:
+            if d.language in decks_json:
+                decks_json[d.language].append(d)
+            else:
+                decks_json[d.language] = [d]
+        return decks_json
+
+    def card_total(self):
+        return len(self.cards)
+
 
 class UserDeck(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -170,6 +184,9 @@ class UserDeck(db.Model):
         'Deck',
         foreign_keys=[deck_id],
     )
+
+    def card_total(self):
+        return len(self.cards)
 
     def populate(self, deck):
         self.deck = deck
@@ -264,9 +281,6 @@ class UserDeck(db.Model):
     def get_unsorted_cards(self):
         return [c for c in self.cards if not c.sorted]
 
-    def card_total(self):
-        return len(self.cards)
-
     def get_flash_cards(self, sorting=False):
         flash_cards = []
         if sorting is False:
@@ -289,17 +303,6 @@ class UserDeck(db.Model):
 
     def to_study_total(self):
         return len([c for c in self.cards if c.to_study])
-
-    @classmethod
-    def get_all_json(cls, type):
-        decks = db.session.query(cls).join(Deck).filter_by(type=type)
-        decks_json = {}
-        for d in decks:
-            if d.deck.language in decks_json:
-                decks_json[d.deck.language].append(d)
-            else:
-                decks_json[d.deck.language] = [d]
-        return decks_json
 
 
 class LanguageDeck(Deck):

@@ -20,6 +20,7 @@ from app.models import (
     Deck,
     UserDeck,
     User,
+    ArticleDeck,
 )
 from app.helpers import get_scraper
 
@@ -83,16 +84,29 @@ def process_game():
 
 @app.route('/user-decks/<int:user_id>', methods=['GET', 'POST'])
 def user_decks(user_id):
-    user = User.query.get(user_id)
+    user = current_user
     form = URLForm()
     url = ''
     if form.validate_on_submit():
+
         url = form.url.data
-        scraper = get_scraper(url)
-        ud = UserDeck(user=user)
-        ud.populate(
-            scraper.process_page().create_article()
-        )
+        ad = ArticleDeck.query.filter_by(url=url)
+        if any(a for a in ad):
+            deck = ad[0]
+            ud = UserDeck.query.filter_by(
+                user=user,
+                deck=deck
+            )
+            if not any(d for d in ud):
+                ud = UserDeck(user=user)
+                ud.populate(ad[0])
+        else:
+            scraper = get_scraper(url)
+            ud = UserDeck(user=user)
+            ud.populate(
+                scraper.process_page().create_article()
+            )
+
     decks = user.get_decks_json()
     return render_template(
         'user_decks.html',
@@ -108,7 +122,7 @@ def user_decks(user_id):
 @app.route('/decks')
 def decks():
     user = current_user
-    decks = UserDeck.get_all_json(type='language_deck')
+    decks = Deck.get_all_json(type='language_deck')
     return render_template(
         'decks.html',
         title='Home',
@@ -119,23 +133,11 @@ def decks():
 
 @app.route('/articles', methods=['GET', 'POST'])
 def articles():
-    #  user = {'username': '学生'}
-    form = URLForm()
-    url = ''
-    if form.validate_on_submit():
-        url = form.url.data
-        scraper = get_scraper(url)
-        ud = UserDeck()
-        ud.populate(
-            scraper.process_page().create_article()
-        )
     return render_template(
         'articles.html',
         title='Articles',
-        form=form,
-        url=url,
         user=current_user,
-        language_decks=UserDeck.get_all_json(
+        language_decks=Deck.get_all_json(
             type='article_deck'
         )
     )
@@ -144,7 +146,26 @@ def articles():
 @app.route('/deck/<int:deck_id>')
 def browse_deck(deck_id):
     deck = Deck.query.get(deck_id)
-    return render_template('browse_deck.html', deck=deck)
+    cards = sorted(
+        deck.cards,
+        key=lambda w: w.frequency,
+        reverse=True
+    )
+    return render_template(
+        'browse_deck.html',
+        deck=deck,
+        cards=cards,
+        user=current_user
+        )
+
+
+@app.route('/add-deck/<int:deck_id>')
+def add_deck(deck_id):
+    deck = Deck.query.get(deck_id)
+    user_deck = UserDeck(user=current_user)
+    user_deck.populate(deck)
+
+    return redirect(url_for('user_decks', user_id=current_user.id))
 
 
 @app.route('/deck_settings/<int:deck_id>', methods=['GET', 'POST'])

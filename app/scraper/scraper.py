@@ -76,6 +76,7 @@ class EuropeanScraper(Scraper):
         deck = ArticleDeck(name=self.title)
         deck.url = self.url
         language = self.url_language
+        deck.language = language
 
         existing_words = {
             w.word: w

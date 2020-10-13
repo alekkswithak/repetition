@@ -6,7 +6,7 @@
     <h2>{{ deck.name }} - all cards</h2>
     <!-- <div class="card-deck"> -->
         <div class="row">
-    {% for c in deck.cards %}
+    {% for c in cards %}
     <div class="col-sm-3">
         <br>
             <div class='card'>
@@ -16,6 +16,7 @@
                         {% for a in c.get_answers()[0:2] %}
                         <li>{{ a }}</li>
                         {% endfor %}
+                        <li>{{ c.frequency }}</li>
                       </ul>
                 </div>
             </div>
