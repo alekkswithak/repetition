@@ -30,6 +30,15 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def get_decks_json(self):
+        decks_json = {}
+        for d in self.decks:
+            if d.deck.language in decks_json:
+                decks_json[d.deck.language].append(d)
+            else:
+                decks_json[d.deck.language] = [d]
+        return decks_json
+
 
 @login.user_loader
 def load_user(id):

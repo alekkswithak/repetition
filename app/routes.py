@@ -81,10 +81,33 @@ def process_game():
     return redirect(url_for('flash', deck_id=deck_id))
 
 
+@app.route('/user-decks/<int:user_id>', methods=['GET', 'POST'])
+def user_decks(user_id):
+    user = User.query.get(user_id)
+    form = URLForm()
+    url = ''
+    if form.validate_on_submit():
+        url = form.url.data
+        scraper = get_scraper(url)
+        ud = UserDeck(user=user)
+        ud.populate(
+            scraper.process_page().create_article()
+        )
+    decks = user.get_decks_json()
+    return render_template(
+        'user_decks.html',
+        title='My decks',
+        url=url,
+        form=form,
+        user=user,
+        language_decks=decks
+    )
+
+
 @app.route('/')
 @app.route('/decks')
 def decks():
-    user = {'username': '学生'}
+    user = current_user
     decks = UserDeck.get_all_json(type='language_deck')
     return render_template(
         'decks.html',
@@ -111,6 +134,7 @@ def articles():
         title='Articles',
         form=form,
         url=url,
+        user=current_user,
         language_decks=UserDeck.get_all_json(
             type='article_deck'
         )
