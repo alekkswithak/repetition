@@ -5,7 +5,7 @@ from app.scraper.scraper import (
 )
 from app.models import ChineseWord, EuropeanWord
 from app import db, app
-from procs import read_all_chinese, read_all_euro
+from procs import read_all_chinese, read_all_euro, read_hsk
 from collections import defaultdict, Counter
 import unittest
 
@@ -65,12 +65,14 @@ class ChineseScraperTests(ScraperTest):
         self.assertTrue(scraper.words)
 
     def test_create_article(self):
+        read_hsk()
         url = 'https://zh.wikipedia.org/wiki/%E9%97%B4%E9%9A%94%E9%87%8D%E5%A4%8D'
         scraper = ChineseScraper(url)
         article = scraper.process_page().create_article()
         self.assertEqual(len(article.cards), 221)
 
     def test_scraper_sub_words(self):
+        read_hsk()
         url = 'test'
         scraper = ChineseScraper(url)
         scraper.words = Counter(['目标语言'])

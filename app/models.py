@@ -33,6 +33,8 @@ class User(UserMixin, db.Model):
     def get_decks_json(self):
         decks_json = {}
         for d in self.decks:
+            if d.deck is None:
+                continue
             if d.deck.language in decks_json:
                 decks_json[d.deck.language].append(d)
             else:
@@ -148,7 +150,9 @@ class Deck(db.Model):
         return '<Deck "{}">'.format(self.name)
 
     @classmethod
-    def get_all_json(cls, type):
+    def get_all_json(cls, type=None):
+        if type is None:
+            type = cls.type
         decks = db.session.query(cls).filter_by(type=type)
         decks_json = {}
         for d in decks:
