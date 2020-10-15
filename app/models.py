@@ -334,6 +334,17 @@ class ArticleDeck(LanguageDeck):
     }
 
 
+class ClipDeck(Deck):
+    __tablename__ = 'clip_deck'
+    id = db.Column(db.Integer, db.ForeignKey('deck.id'), primary_key=True)
+    title = db.Column(db.String(128))
+    text = db.Column(db.Text())
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'clip_deck',
+    }
+
+
 class ArticleWord(Card):
     __tablename__ = 'article_word'
     id = db.Column(db.Integer, db.ForeignKey('card.id'), primary_key=True)
