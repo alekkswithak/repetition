@@ -4,7 +4,8 @@ from wtforms import (
     SubmitField,
     IntegerField,
     PasswordField,
-    BooleanField
+    BooleanField,
+    TextAreaField,
 )
 from wtforms.validators import (
     ValidationError,
@@ -17,6 +18,12 @@ from app.models import User
 
 class URLForm(FlaskForm):
     url = StringField('URL', validators=[DataRequired()])
+    submit = SubmitField('submit')
+
+
+class ClipForm(FlaskForm):
+    title = StringField('URL', validators=[DataRequired()])
+    text = TextAreaField('Text')
     submit = SubmitField('submit')
 
 
