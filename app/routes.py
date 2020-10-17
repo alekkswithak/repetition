@@ -14,13 +14,15 @@ from app.forms import (
     URLForm,
     DeckSettingsForm,
     LoginForm,
-    RegistrationForm
+    RegistrationForm,
+    ClipForm,
 )
 from app.models import (
     Deck,
     UserDeck,
     User,
     ArticleDeck,
+    ClipDeck,
 )
 from app.helpers import get_scraper
 
@@ -225,3 +227,28 @@ def register():
         db.session.commit()
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
+
+
+@app.route('/clip-decks/<int:user_id>', methods=['GET', 'POST'])
+def clip_decks(user_id):
+    user = current_user
+    form = ClipForm()
+    if form.validate_on_submit():
+
+        title = form.title.data
+        text = form.text.data
+        cd = ClipDeck(
+            title=title,
+            text=text
+            )
+        ud = UserDeck(user=user)
+        ud.populate(cd)
+
+    decks = user.get_decks_json(type="clip_deck")
+    return render_template(
+        'clip_decks.html',
+        title='Clip decks',
+        form=form,
+        user=user,
+        language_decks=decks
+    )

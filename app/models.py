@@ -30,9 +30,13 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def get_decks_json(self):
+    def get_decks_json(self, type=None):
         decks_json = {}
-        for d in self.decks:
+        if type is not None:
+            decks = [d for d in self.decks if d.type == type]
+        else:
+            decks = self.decks
+        for d in decks:
             if d.deck is None:
                 continue
             if d.deck.language in decks_json:
