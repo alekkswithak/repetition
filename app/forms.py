@@ -22,7 +22,7 @@ class URLForm(FlaskForm):
 
 
 class ClipForm(FlaskForm):
-    title = StringField('URL', validators=[DataRequired()])
+    title = StringField('Title', validators=[DataRequired()])
     text = TextAreaField('Text')
     submit = SubmitField('submit')
 

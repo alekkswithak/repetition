@@ -33,7 +33,11 @@ class User(UserMixin, db.Model):
     def get_decks_json(self, type=None):
         decks_json = {}
         if type is not None:
-            decks = [d for d in self.decks if d.type == type]
+            decks = [
+                d for d in self.decks
+                if d.deck is not None
+                and d.deck.type == type
+            ]
         else:
             decks = self.decks
         for d in decks:
@@ -338,9 +342,13 @@ class ArticleDeck(LanguageDeck):
     }
 
 
-class ClipDeck(Deck):
+class ClipDeck(LanguageDeck):
     __tablename__ = 'clip_deck'
-    id = db.Column(db.Integer, db.ForeignKey('deck.id'), primary_key=True)
+    id = db.Column(
+        db.Integer,
+        db.ForeignKey('language_deck.id'),
+        primary_key=True
+    )
     title = db.Column(db.String(128))
     text = db.Column(db.Text())
 

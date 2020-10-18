@@ -24,7 +24,7 @@ from app.models import (
     ArticleDeck,
     ClipDeck,
 )
-from app.helpers import get_scraper
+from app.helpers import get_scraper, ChineseScraper
 
 
 @app.route('/flash/<int:deck_id>')
@@ -237,10 +237,14 @@ def clip_decks(user_id):
 
         title = form.title.data
         text = form.text.data
+        breakpoint()
         cd = ClipDeck(
             title=title,
             text=text
             )
+        cs = ChineseScraper()
+        cs.process_text(text)
+        cs.create_deck(cd)
         ud = UserDeck(user=user)
         ud.populate(cd)
 

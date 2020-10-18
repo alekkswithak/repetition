@@ -5,6 +5,7 @@ import string
 import abc
 from app.models import (
     ArticleDeck,
+    ClipDeck,
     ChineseWord,
     ArticleWord,
     EuropeanWord
@@ -25,7 +26,7 @@ def get_chinese(context):
 
 class Scraper():
 
-    def __init__(self, url):
+    def __init__(self, url=None):
         self.url = url
         self.title = None
         self.words = Counter()
@@ -120,31 +121,34 @@ class ChineseScraper(Scraper):
         for p in paragraphs:
             w = get_chinese(p)
             x = hc.toSimplified(w)
-            self.words += Counter(jieba.cut(x, cut_all=True))
+            self.words += Counter(jieba.cut(x, cut_all=False))
 
         return self
 
-    def create_article(self):
-        deck = ArticleDeck(name=self.title)
-        deck.url = self.url
+    def process_text(self, text):
+        w = get_chinese(text)
+        x = hc.toSimplified(w)
+        self.words = Counter(jieba.cut(x, cut_all=False))
 
+    def create_deck(self, deck):
         hsk_words = {w.zi_simp: w for w in ChineseWord.query.all() if w.hsk}
         existing_words = {w.zi_simp: w for w in ChineseWord.query.all()}
-        # breakpoint()
         for word_text, freq in self.words.items():
             if word_text in hsk_words:
                 word = hsk_words[word_text]
             elif word_text in existing_words:
                 word = existing_words[word_text]
             else:
+                sub_words = jieba.cut(word_text, cut_all=True)
+                for w in sub_words:
+                    if w in existing_words:
+                        word = existing_words[w]
+                        article_word = ArticleWord(
+                            frequency=freq,
+                            word=word
+                        )
+                        deck.cards.append(article_word)
                 continue
-            # else:
-            #     sub_words = jieba.cut(word_text, cut_all=True)
-            #     for w in sub_words:
-            #         if w in existing_words:
-            #             word = existing_words[w]
-            #         else:
-            #             word = ChineseWord(zi_simp=w)
 
             article_word = ArticleWord(
                 frequency=freq,
@@ -155,3 +159,8 @@ class ChineseScraper(Scraper):
         db.session.add(deck)
         db.session.commit()
         return deck
+
+    def create_article(self):
+        deck = ArticleDeck(name=self.title)
+        deck.url = self.url
+        return self.create_deck(deck)
