@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<br>
+
+<div class="container">
+    <h2>{{ deck.title }}</h2>
+
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" data-toggle="tab" href="#menu1">Words</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-toggle="tab" href="#menu2">Text</a>
+        </li>
+      </ul>
+
+    <div class="tab-content">
+      <div id="menu1" class="container tab-pane active">
+        {% include 'cards_component.html' %}
+      </div>
+      <div id="menu2" class="container tab-pane fade">
+        <br>
+        <p>{{ deck.text }}</p>
+      </div>
+    </div>
+
+</div>
+{% endblock %}

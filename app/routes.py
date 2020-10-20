@@ -148,13 +148,17 @@ def articles():
 @app.route('/deck/<int:deck_id>')
 def browse_deck(deck_id):
     deck = Deck.query.get(deck_id)
+    if deck.type == "clip_deck":
+        template = 'browse_clip_deck.html'
+    else:
+        template = 'browse_deck.html'
     cards = sorted(
         deck.cards,
         key=lambda w: w.frequency,
         reverse=True
     )
     return render_template(
-        'browse_deck.html',
+        template,
         deck=deck,
         cards=cards,
         user=current_user
@@ -237,7 +241,6 @@ def clip_decks(user_id):
 
         title = form.title.data
         text = form.text.data
-        breakpoint()
         cd = ClipDeck(
             title=title,
             text=text

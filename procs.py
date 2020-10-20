@@ -138,7 +138,7 @@ def create_chinese_article():
 
 def create_all():
     read_all_chinese()
-    read_all_euro()
+    # read_all_euro()
     for _, d in make_chinese_decks().items():
         ud = UserDeck()
         ud.populate(d)
