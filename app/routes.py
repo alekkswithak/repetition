@@ -24,7 +24,10 @@ from app.models import (
     ArticleDeck,
     ClipDeck,
 )
-from app.helpers import get_scraper, ChineseScraper
+from app.helpers import (
+    get_scraper,
+    DeckMaker
+)
 
 
 @app.route('/flash/<int:deck_id>')
@@ -104,10 +107,13 @@ def user_decks(user_id):
                 ud.populate(ad[0])
         else:
             scraper = get_scraper(url)
-            ud = UserDeck(user=user)
-            ud.populate(
-                scraper.process_page().create_article()
+            dm = DeckMaker(scraper.process_page())
+            deck = dm.create_article(
+                title=scraper.title,
+                url=scraper.url
             )
+            ud = UserDeck(user=user)
+            ud.populate(deck)
 
     decks = user.get_decks_json()
     return render_template(
@@ -241,13 +247,12 @@ def clip_decks(user_id):
 
         title = form.title.data
         text = form.text.data
-        cd = ClipDeck(
+        dm = DeckMaker()
+        dm.process_text(text)
+        cd = dm.create_clip(
             title=title,
             text=text
-            )
-        cs = ChineseScraper()
-        cs.process_text(text)
-        cs.create_deck(cd)
+        )
         ud = UserDeck(user=user)
         ud.populate(cd)
 

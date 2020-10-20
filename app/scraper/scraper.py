@@ -5,8 +5,6 @@ import string
 import abc
 from app.models import (
     ArticleDeck,
-    ClipDeck,
-    ChineseWord,
     ArticleWord,
     EuropeanWord
 )
@@ -33,10 +31,6 @@ class Scraper():
 
     @abc.abstractmethod
     def process_page(self):
-        return
-
-    @abc.abstractmethod
-    def create_article(self):
         return
 
     @property
@@ -123,44 +117,6 @@ class ChineseScraper(Scraper):
             x = hc.toSimplified(w)
             self.words += Counter(jieba.cut(x, cut_all=False))
 
-        return self
+        return self.words
 
-    def process_text(self, text):
-        w = get_chinese(text)
-        x = hc.toSimplified(w)
-        self.words = Counter(jieba.cut(x, cut_all=False))
 
-    def create_deck(self, deck):
-        hsk_words = {w.zi_simp: w for w in ChineseWord.query.all() if w.hsk}
-        existing_words = {w.zi_simp: w for w in ChineseWord.query.all()}
-        for word_text, freq in self.words.items():
-            if word_text in hsk_words:
-                word = hsk_words[word_text]
-            elif word_text in existing_words:
-                word = existing_words[word_text]
-            else:
-                sub_words = jieba.cut(word_text, cut_all=True)
-                for w in sub_words:
-                    if w in existing_words:
-                        word = existing_words[w]
-                        article_word = ArticleWord(
-                            frequency=freq,
-                            word=word
-                        )
-                        deck.cards.append(article_word)
-                continue
-
-            article_word = ArticleWord(
-                frequency=freq,
-                word=word
-            )
-            deck.cards.append(article_word)
-
-        db.session.add(deck)
-        db.session.commit()
-        return deck
-
-    def create_article(self):
-        deck = ArticleDeck(name=self.title)
-        deck.url = self.url
-        return self.create_deck(deck)
