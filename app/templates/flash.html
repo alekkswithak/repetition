@@ -14,10 +14,13 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  <script src="{{ url_for('static', filename='js/flash.js') }}"></script>
 </head>
 
 <body>
+
+  <div id="exit-integer" style="display: none;" >{{ exit_integer }}</div>
+  <div id="deck-id" style="display: none;" >{{ deck_id }}</div>
+  <div id="redirect-url" style="display: none;" >{{ redirect_url }}</div>
 
   {% for c in cards %}
   <div class="col-lg-12 text-center">
@@ -43,5 +46,4 @@
   {% endfor %}
 
 </body>
-
-
+<script type="text/javascript" src="{{ url_for('static', filename='js/flash.js') }}"></script>

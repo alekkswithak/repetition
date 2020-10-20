@@ -1,5 +1,3 @@
-exit_integer = parseInt("{{ exit_integer }}")
-
   function showDiv(data) {
     $("#ele-" + data).show();
     hideElement(exit_integer, data);
@@ -26,11 +24,19 @@ exit_integer = parseInt("{{ exit_integer }}")
     showDiv(counter);
 });
 
+var dict, exit_integer;
+window.addEventListener("load", function(){
+  dict = {"deck_id": $('#deck-id').text()}
+  exit_integer = parseInt(
+    $("#exit-integer").text()
+  )
+  console.log(exit_integer)
+});
+
 var counter = 0
-var dict = {"deck_id": "{{ deck_id }}"}
 var shown = false
-console.log(exit_integer)
 document.addEventListener("keypress", function onPress(event) {
+  console.log(counter)
   if (event.key === "z") {
       id = $("#card-id-" + counter).text()
       counter++;
@@ -49,7 +55,8 @@ document.addEventListener("keypress", function onPress(event) {
       $('#card-answer-'+counter).show()
   }
   if (counter === exit_integer) {
-    fetch("{{ redirect_url }}", {
+    fetch(
+      $('#redirect-url').text(), {
       method: "POST",
       headers: {
         'Accept': 'application/json',
@@ -66,8 +73,12 @@ document.addEventListener("keypress", function onPress(event) {
     });
   }
 });
+
+
+
 window.onbeforeunload = function() {
-  fetch("{{ redirect_url }}", {
+  fetch(
+    $('#redirect-url').text(), {
       method: "POST",
       headers: {
         'Accept': 'application/json',
