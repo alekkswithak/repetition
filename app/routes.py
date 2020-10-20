@@ -22,7 +22,6 @@ from app.models import (
     UserDeck,
     User,
     ArticleDeck,
-    ClipDeck,
 )
 from app.helpers import (
     get_scraper,

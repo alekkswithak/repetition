@@ -118,5 +118,3 @@ class ChineseScraper(Scraper):
             self.words += Counter(jieba.cut(x, cut_all=False))
 
         return self.words
-
-
