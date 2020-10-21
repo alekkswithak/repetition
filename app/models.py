@@ -336,6 +336,24 @@ class LanguageDeck(Deck):
     }
 
 
+class CustomDeck(LanguageDeck):
+    __tablename__ = 'custom_deck'
+    id = db.Column(
+        db.Integer,
+        db.ForeignKey('language_deck.id'),
+        primary_key=True
+    )
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'custom_deck',
+    }
+
+    def add_cards(self, cards):
+        for c in cards:
+            self.cards.append(c)
+        db.session.commit()
+
+
 class ArticleDeck(LanguageDeck):
     __tablename__ = 'article_deck'
     id = db.Column(

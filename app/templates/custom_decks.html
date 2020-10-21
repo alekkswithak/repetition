@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<br>
+<div class="container">
+    <div class="col-lg-12 text-center">
+    <h1>New Custom Deck</h1>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.name.label }}<br>
+            {{ form.name(size=32) }}
+        </div>
+        <div class='col-lg-12'>
+            {{ form.submit(type="submit") }}
+        </div>
+    </form>
+</div>
+</div>
+
+{% include 'user_decks_component.html' %}
+
+{% endblock %}

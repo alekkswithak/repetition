@@ -16,6 +16,7 @@ from app.forms import (
     LoginForm,
     RegistrationForm,
     ClipForm,
+    CustomDeckForm,
 )
 from app.models import (
     Word,
@@ -23,6 +24,7 @@ from app.models import (
     UserDeck,
     User,
     ArticleDeck,
+    CustomDeck,
 )
 from app.helpers import (
     get_scraper,
@@ -289,4 +291,24 @@ def words():
         title='Words',
         cards=words,
         user=current_user,
+    )
+
+
+@app.route('/custom-decks/<int:user_id>', methods=['GET', 'POST'])
+def custom_decks(user_id):
+    user = current_user
+    form = CustomDeckForm()
+    if form.validate_on_submit():
+        name = form.name.data
+        cd = CustomDeck(name=name)
+        ud = UserDeck(user=user)
+        ud.populate(cd)
+
+    decks = user.get_decks_json(type="custom_deck")
+    return render_template(
+        'custom_decks.html',
+        title='Custom decks',
+        form=form,
+        user=user,
+        language_decks=decks
     )

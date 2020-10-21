@@ -70,7 +70,6 @@ class DeckMaker:
         return self.create_deck(deck)
 
 
-
 def get_scraper(url):
     if 'zh.wikipedia.org' in url:
         scraper = ChineseScraper(url)
