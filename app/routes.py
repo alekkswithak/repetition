@@ -18,6 +18,7 @@ from app.forms import (
     ClipForm,
 )
 from app.models import (
+    Word,
     Deck,
     UserDeck,
     User,
@@ -273,4 +274,19 @@ def clip_decks(user_id):
         form=form,
         user=user,
         language_decks=decks
+    )
+
+
+@app.route('/words')
+def words():
+    words = sorted(
+        [w for w in Word.query.all() if w.frequency],
+        key=lambda w: w.frequency,
+        reverse=True
+    )
+    return render_template(
+        'words.html',
+        title='Words',
+        cards=words,
+        user=current_user,
     )

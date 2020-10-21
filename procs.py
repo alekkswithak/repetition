@@ -10,6 +10,7 @@ from app.models import (
     Deck,
     LanguageDeck,
     UserDeck,
+    ArticleDeck,
 )
 
 
@@ -156,3 +157,16 @@ def read_sentences():
         assert len(structures) == 1
         for l in lines:
             pass
+
+
+def count_frequency():
+    ads = ArticleDeck.query.filter_by(counted=False)
+    for ad in ads:
+        for c in ad.cards:
+            if c.word.frequency is not None:
+                c.word.frequency += c.frequency
+            else:
+                c.word.frequency = c.frequency
+        ad.counted = True
+    db.session.commit()
+

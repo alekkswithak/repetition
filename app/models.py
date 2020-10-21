@@ -345,6 +345,7 @@ class ArticleDeck(LanguageDeck):
     )
     url = db.Column(db.String(512))
     title = db.Column(db.String(64))
+    counted = db.Column(db.Boolean, default=False)
 
     __mapper_args__ = {
         'polymorphic_identity': 'article_deck',
