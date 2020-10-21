@@ -34,7 +34,7 @@
                 <td>{{ d.to_study_total() }}</td>
                 <td>{{ d.seen_total() }}</td>
                 <td><a href={{ url_for('sort', deck_id=d.id) }}>Sort</a></td>
-                <td><a href={{ url_for('browse_deck', deck_id=d.id) }}>Browse</a></td>
+                <td><a href={{ url_for('browse_user_deck', id=d.id) }}>Browse</a></td>
                 <td><a href={{ url_for('flash', deck_id=d.id) }}>Play</a></td>
                 <td><a href={{ url_for('deck_settings', deck_id=d.id) }}>Settings</a></td>
             </tr>

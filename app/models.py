@@ -309,6 +309,15 @@ class UserDeck(db.Model):
 
         return flash_cards
 
+    def get_display_cards(self):
+        cards = defaultdict(list)
+        for c in self.cards:
+            if c.to_study:
+                cards[1].append(c.card)
+            else:
+                cards[2].append(c.card)
+        return cards
+
     def seen_total(self):
         to_study = [c for c in self.cards if c.to_study]
         return len([c for c in to_study if c.last_time])

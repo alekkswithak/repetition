@@ -92,7 +92,6 @@ def user_decks(user_id):
     form = URLForm()
     url = ''
     if form.validate_on_submit():
-
         url = form.url.data
         ad = ArticleDeck.query.filter_by(url=url)
         if any(a for a in ad):
@@ -148,6 +147,18 @@ def articles():
             type='article_deck'
         )
     )
+
+
+@app.route('/user-deck/<int:id>')
+def browse_user_deck(id):
+    ud = UserDeck.query.get(id)
+    cards = ud.get_display_cards()
+    return render_template(
+        'browse_user_deck.html',
+        deck=ud,
+        user_cards=cards,
+        user=current_user
+        )
 
 
 @app.route('/deck/<int:deck_id>')
