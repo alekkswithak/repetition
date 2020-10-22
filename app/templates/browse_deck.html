@@ -5,6 +5,16 @@
 <div class='container'>
     <h2>{{ deck.name }} - all cards</h2>
 
-{% include 'cards_component.html' %}
+    <form>
+        <label>Custom Deck:</label>
+        <select id="custom_deck_select">
+        {% for cd in custom_decks %}
+          <option value="{{ cd.id }}">{{ cd.name }}</option>
+        {% endfor %}
+        </select>
+        <input type="submit">
+    </form>
+
+    {% include 'cards_component.html' %}
 </div>
 {% endblock %}
