@@ -64,9 +64,4 @@
     </body>
 </html>
 
-<script>
-$(document).ready(function() {
-  $('li.active').removeClass('active');
-  $('a[href="' + location.pathname + '"]').closest('li').addClass('active');
-});
-</script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/base.js') }}"></script>
