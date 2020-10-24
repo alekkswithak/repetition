@@ -176,11 +176,14 @@ def browse_deck(deck_id):
         key=lambda w: w.frequency,
         reverse=True
     )
+    user = current_user
+    custom_decks = user.get_decks_json(type="custom_deck")
     return render_template(
         template,
         deck=deck,
         cards=cards,
-        user=current_user
+        user=user,
+        custom_decks=custom_decks,
         )
 
 
