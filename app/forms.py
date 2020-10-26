@@ -64,4 +64,4 @@ class RegistrationForm(FlaskForm):
 
 class CustomDeckForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
-    submit = SubmitField('Sign In')
+    submit = SubmitField('Create')

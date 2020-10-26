@@ -172,12 +172,22 @@ def browse_deck(deck_id):
     else:
         template = 'browse_deck.html'
     cards = sorted(
-        deck.cards,
+        [
+            c for c in deck.cards
+            if c.frequency is not None
+        ],
         key=lambda w: w.frequency,
         reverse=True
     )
+    cards.extend(
+        [
+            c for c in deck.cards
+            if c.frequency is None
+        ]
+    )
     user = current_user
-    custom_decks = user.get_decks_json(type="custom_deck")
+    custom_decks = user.get_decks_json(type="custom_deck")[None]
+    breakpoint()
     return render_template(
         template,
         deck=deck,

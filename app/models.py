@@ -206,6 +206,7 @@ class UserDeck(db.Model):
             self.cards.append(
                 UserCard(card=c, deck=self)
             )
+        db.session.add(deck)
         db.session.add(self)
         db.session.commit()
 

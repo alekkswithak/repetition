@@ -9,7 +9,7 @@
         <label>Custom Deck:</label>
         <select id="custom_deck_select">
         {% for cd in custom_decks %}
-          <option value="{{ cd.id }}">{{ cd.name }}</option>
+          <option value="{{ cd.id }}">{{ cd.deck.name }}</option>
         {% endfor %}
         </select>
         <input type="submit">
