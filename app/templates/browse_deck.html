@@ -5,7 +5,10 @@
 <div class='container'>
     <h2>{{ deck.name }} - all cards</h2>
 
+    <button id='toggle'>Add to custom deck</button>
+
     <form>
+      <div id='add-cards-dropdown' style="display: none;">
         <label>Custom Deck:</label>
         <select id="custom_deck_select">
         {% for cd in custom_decks %}
@@ -13,8 +16,12 @@
         {% endfor %}
         </select>
         <input type="submit">
+
+      </div>
+
+        {% include 'cards_component.html' %}
+
     </form>
 
-    {% include 'cards_component.html' %}
 </div>
 {% endblock %}

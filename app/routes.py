@@ -187,7 +187,6 @@ def browse_deck(deck_id):
     )
     user = current_user
     custom_decks = user.get_decks_json(type="custom_deck")[None]
-    breakpoint()
     return render_template(
         template,
         deck=deck,

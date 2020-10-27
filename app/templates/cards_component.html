@@ -5,6 +5,9 @@
         <br>
         <div class='card'>
             <div class="card-body">
+                <div class="checkbox" id="add-check" style="display: none;">
+                    <input type="checkbox" value={{ c.id }}>
+                </div>
                 <h2>{{ c.get_questions()[0] }}</h2>
                 <ul class="list-unstyled">
                     {% for a in c.get_answers()[0:2] %}
