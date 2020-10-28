@@ -6,7 +6,7 @@
         <div class='card'>
             <div class="card-body">
                 <div class="checkbox" id="add-check" style="display: none;">
-                    <input type="checkbox" value={{ c.id }}>
+                    <input type="checkbox" name="card-id" value="{{ c.id }}">
                 </div>
                 <h2>{{ c.get_questions()[0] }}</h2>
                 <ul class="list-unstyled">

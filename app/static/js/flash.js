@@ -86,6 +86,5 @@ window.onbeforeunload = function() {
       },
       body: JSON.stringify(dict)
     })
-    console.log('POSTING')
 return;
 }

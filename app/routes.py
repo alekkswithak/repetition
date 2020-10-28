@@ -324,3 +324,12 @@ def custom_decks(user_id):
         user=user,
         language_decks=decks
     )
+
+
+@app.route('/update-custom-deck/', methods=['GET', 'POST'])
+def update_custom_deck():
+    cd = CustomDeck.query.get(
+        int(request.form.get('custom-deck'))
+    )
+    card_ids = request.form.getlist('card-id')
+    breakpoint()
