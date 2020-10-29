@@ -1,14 +1,17 @@
-import abc
 import math
+import abc
 from collections import defaultdict
 from datetime import datetime
+from sqlalchemy.orm import relationship
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy.ext.declarative import declarative_base
 from app import db, login
 
 
-Base = declarative_base()
+association_table = db.Table('association',
+    db.Column('user_deck_id', db.Integer, db.ForeignKey('user_deck.id')),
+    db.Column('user_card_id', db.Integer, db.ForeignKey('user_card.id'))
+)
 
 
 class User(UserMixin, db.Model):
@@ -18,8 +21,8 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
 
-    cards = db.relationship('UserCard', back_populates='user')
-    decks = db.relationship('UserDeck', back_populates='user')
+    cards = relationship('UserCard', back_populates='user')
+    decks = relationship('UserDeck', back_populates='user')
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -55,37 +58,6 @@ def load_user(id):
     return User.query.get(int(id))
 
 
-class Card(db.Model, Base):
-    __metaclass__ = abc.ABCMeta
-    __tablename__ = 'card'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50))
-    type = db.Column(db.String(50))
-    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
-    deck = db.relationship('Deck', back_populates='cards')
-    frequency = db.Column(db.Integer)
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'card',
-        'polymorphic_on': type
-    }
-
-    @abc.abstractmethod
-    def get_questions(self):
-        return
-
-    @abc.abstractmethod
-    def get_answers(self):
-        return
-
-    def get_dict(self):
-        return {
-            'id': self.id,
-            'questions': self.get_questions(),
-            'answers': self.get_answers()
-        }
-
-
 class UserCard(db.Model):
     __tablename__ = 'user_card'
     id = db.Column(db.Integer, primary_key=True)
@@ -102,16 +74,10 @@ class UserCard(db.Model):
         foreign_keys=[card_id],
     )
 
-    deck_id = db.Column(db.Integer, db.ForeignKey('user_deck.id'))
-    deck = db.relationship(
-        'UserDeck',
-        foreign_keys=[deck_id],
-    )
-
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user = db.relationship(
+    user = relationship(
         'User',
-        foreign_keys=[user_id],
+        back_populates='cards'
     )
 
     def __repr__(self):
@@ -120,20 +86,20 @@ class UserCard(db.Model):
     def get_dict(self):
         return {
             'id': self.id,
-            'questions': self.card.get_questions(),
-            'answers': self.card.get_answers()
+            # 'questions': self.card.get_questions(),
+            # 'answers': self.card.get_answers()
         }
 
-    def known(self):
-        self.ease *= self.deck.multiplier
+    def known(self, multiplier):
+        self.ease *= multiplier
         if self.priority is True:
             self.priority = False
         else:
             self.learning = False
         self.last_time = datetime.now()
 
-    def unknown(self):
-        ease = self.ease / self.deck.multiplier
+    def unknown(self, multiplier):
+        ease = self.ease / multiplier
         if ease > 1:
             self.ease = math.floor(ease)
         else:
@@ -142,39 +108,8 @@ class UserCard(db.Model):
         self.last_time = datetime.now()
 
 
-class Deck(db.Model):
-    __tablename__ = 'deck'
-    id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(50))
-    name = db.Column(db.String(50))
-    cards = db.relationship('Card', back_populates='deck')
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'deck',
-        'polymorphic_on': type
-    }
-
-    def __repr__(self):
-        return '<Deck "{}">'.format(self.name)
-
-    @classmethod
-    def get_all_json(cls, type=None):
-        if type is None:
-            type = cls.type
-        decks = db.session.query(cls).filter_by(type=type)
-        decks_json = {}
-        for d in decks:
-            if d.language in decks_json:
-                decks_json[d.language].append(d)
-            else:
-                decks_json[d.language] = [d]
-        return decks_json
-
-    def card_total(self):
-        return len(self.cards)
-
-
 class UserDeck(db.Model):
+    __tablename__ = 'user_deck'
     id = db.Column(db.Integer, primary_key=True)
     card_number = db.Column(db.Integer, default=20)  # old/init cards per go
     new_card_number = db.Column(db.Integer, default=10)  # new cards per go
@@ -183,19 +118,25 @@ class UserDeck(db.Model):
     entry_interval = db.Column(db.Integer, default=5)  # new card entry
     last_date = db.Column(db.Date, default=None)
 
-    cards = db.relationship('UserCard', back_populates='deck')
+    cards = relationship('UserCard', secondary=association_table)
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user = db.relationship(
+    user = relationship(
         'User',
-        foreign_keys=[user_id],
+        back_populates='decks'
     )
 
-    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
-    deck = db.relationship(
-        'Deck',
-        foreign_keys=[deck_id],
-    )
+    # deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
+    # deck = relationship(
+    #     'Deck',
+    #     foreign_keys=[deck_id],
+    # )
+
+    type = db.Column(db.String(50))
+    __mapper_args__ = {
+        'polymorphic_identity': 'user_deck',
+        'polymorphic_on': type
+    }
 
     def card_total(self):
         return len(self.cards)
@@ -204,7 +145,7 @@ class UserDeck(db.Model):
         self.deck = deck
         for c in deck.cards:
             self.cards.append(
-                UserCard(card=c, deck=self)
+                UserCard(card=c)
             )
         db.session.add(deck)
         db.session.add(self)
@@ -273,9 +214,9 @@ class UserDeck(db.Model):
             card = UserCard.query.get(card_id)
             result = outcome_row.get('result')
             if result == 'z':
-                card.known()
+                card.known(self.multiplier)
             elif result == 'x':
-                card.unknown()
+                card.unknown(self.multiplier)
         db.session.commit()
 
     def process_sort(self, outcomes):
@@ -327,9 +268,9 @@ class UserDeck(db.Model):
         return len([c for c in self.cards if c.to_study])
 
 
-class LanguageDeck(Deck):
-    __tablename__ = 'language_deck'
-    id = db.Column(db.Integer, db.ForeignKey('deck.id'), primary_key=True)
+class CustomDeck(UserDeck):
+    __tablename__ = 'custom_deck'
+    id = db.Column(db.Integer, db.ForeignKey('user_deck.id'), primary_key=True)
     language = db.Column(db.String(32))
 
     __mapper_args__ = {
@@ -337,53 +278,55 @@ class LanguageDeck(Deck):
     }
 
 
-class CustomDeck(LanguageDeck):
-    __tablename__ = 'custom_deck'
-    id = db.Column(
-        db.Integer,
-        db.ForeignKey('language_deck.id'),
-        primary_key=True
+class Card(db.Model):
+    __tablename__ = 'card'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
+    type = db.Column(db.String(50))
+    frequency = db.Column(db.Integer)
+
+    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
+    deck = relationship(
+        'Deck',
+        back_populates='cards'
     )
 
     __mapper_args__ = {
-        'polymorphic_identity': 'custom_deck',
+        'polymorphic_identity': 'card',
+        'polymorphic_on': type
     }
 
-    def add_cards(self, cards):
-        for c in cards:
-            self.cards.append(c)
-        db.session.commit()
+    @abc.abstractmethod
+    def get_questions(self):
+        return
+
+    @abc.abstractmethod
+    def get_answers(self):
+        return
+
+    def get_dict(self):
+        return {
+            'id': self.id,
+            'questions': self.get_questions(),
+            'answers': self.get_answers()
+        }
 
 
-class ArticleDeck(LanguageDeck):
-    __tablename__ = 'article_deck'
-    id = db.Column(
-        db.Integer,
-        db.ForeignKey('language_deck.id'),
-        primary_key=True
-    )
-    url = db.Column(db.String(512))
-    title = db.Column(db.String(64))
-    counted = db.Column(db.Boolean, default=False)
+class Word(Card):
+    __tablename__ = 'word'
+    id = db.Column(db.Integer, db.ForeignKey('card.id'), primary_key=True)
 
     __mapper_args__ = {
-        'polymorphic_identity': 'article_deck',
+        'polymorphic_identity': 'word',
     }
 
+    @abc.abstractmethod
+    def get_questions(self):
+        return
 
-class ClipDeck(LanguageDeck):
-    __tablename__ = 'clip_deck'
-    id = db.Column(
-        db.Integer,
-        db.ForeignKey('language_deck.id'),
-        primary_key=True
-    )
-    title = db.Column(db.String(128))
-    text = db.Column(db.Text())
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'clip_deck',
-    }
+    @abc.abstractmethod
+    def get_answers(self):
+        return
 
 
 class ArticleWord(Card):
@@ -405,23 +348,6 @@ class ArticleWord(Card):
 
     def get_answers(self):
         return self.word.get_answers()
-
-
-class Word(Card):
-    __tablename__ = 'word'
-    id = db.Column(db.Integer, db.ForeignKey('card.id'), primary_key=True)
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'word',
-    }
-
-    @abc.abstractmethod
-    def get_questions(self):
-        return
-
-    @abc.abstractmethod
-    def get_answers(self):
-        return
 
 
 class EuropeanWord(Word):
@@ -481,3 +407,77 @@ class ChineseWord(Word):
             self.english
         )
         return a
+
+
+class Deck(db.Model):
+    __tablename__ = 'deck'
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(50))
+    name = db.Column(db.String(50))
+
+    cards = relationship('Card', back_populates='deck')
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'deck',
+        'polymorphic_on': type
+    }
+
+    def __repr__(self):
+        return '<Deck "{}">'.format(self.name)
+
+    @classmethod
+    def get_all_json(cls, type=None):
+        if type is None:
+            type = cls.type
+        decks = db.session.query(cls).filter_by(type=type)
+        decks_json = {}
+        for d in decks:
+            if d.language in decks_json:
+                decks_json[d.language].append(d)
+            else:
+                decks_json[d.language] = [d]
+        return decks_json
+
+    def card_total(self):
+        return len(self.cards)
+
+
+class LanguageDeck(Deck):
+    __tablename__ = 'language_deck'
+    id = db.Column(db.Integer, db.ForeignKey('deck.id'), primary_key=True)
+    language = db.Column(db.String(32))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'language_deck',
+    }
+
+
+class ArticleDeck(LanguageDeck):
+    __tablename__ = 'article_deck'
+    id = db.Column(
+        db.Integer,
+        db.ForeignKey('language_deck.id'),
+        primary_key=True
+    )
+    url = db.Column(db.String(512))
+    title = db.Column(db.String(64))
+    counted = db.Column(db.Boolean, default=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'article_deck',
+    }
+
+
+class ClipDeck(LanguageDeck):
+    __tablename__ = 'clip_deck'
+    id = db.Column(
+        db.Integer,
+        db.ForeignKey('language_deck.id'),
+        primary_key=True
+    )
+    title = db.Column(db.String(128))
+    text = db.Column(db.Text())
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'clip_deck',
+    }
