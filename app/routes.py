@@ -186,7 +186,10 @@ def browse_deck(deck_id):
         ]
     )
     user = current_user
-    custom_decks = user.get_decks_json(type="custom_deck")[None]
+    #  TODO: Fix this mess:
+    custom_decks = user.get_decks_json(type="custom_deck")
+    if custom_decks:
+        custom_decks = custom_decks[None]
     return render_template(
         template,
         deck=deck,

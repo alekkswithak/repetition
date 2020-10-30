@@ -12,6 +12,7 @@ from app.models import (
     UserDeck,
     ArticleDeck,
 )
+from app.helpers import DeckMaker
 
 
 def read_wiktionary(language):
@@ -134,7 +135,13 @@ def make_chinese_decks():
 def create_chinese_article():
     url = 'https://zh.wikipedia.org/wiki/%E9%97%B4%E9%9A%94%E9%87%8D%E5%A4%8D'
     scraper = ChineseScraper(url)
-    return scraper.process_page().create_article()
+    dm = DeckMaker(scraper.process_page())
+    deck = dm.create_article(
+        title=scraper.title,
+        url=scraper.url
+    )
+    ud = UserDeck()
+    ud.populate(deck)
 
 
 def create_all():
@@ -143,8 +150,7 @@ def create_all():
     for _, d in make_chinese_decks().items():
         ud = UserDeck()
         ud.populate(d)
-    ud = UserDeck()
-    ud.populate(create_chinese_article())
+    create_chinese_article()
 
 
 def read_sentences():
@@ -168,5 +174,4 @@ def count_frequency():
             else:
                 c.word.frequency = c.frequency
         ad.counted = True
-    db.session.commit()
-
+        db.session.commit()

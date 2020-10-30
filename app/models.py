@@ -126,11 +126,11 @@ class UserDeck(db.Model):
         back_populates='decks'
     )
 
-    # deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
-    # deck = relationship(
-    #     'Deck',
-    #     foreign_keys=[deck_id],
-    # )
+    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
+    deck = relationship(
+        'Deck',
+        foreign_keys=[deck_id],
+    )
 
     type = db.Column(db.String(50))
     __mapper_args__ = {
