@@ -5,23 +5,7 @@
 <div class='container'>
     <h2>{{ deck.name }} - all cards</h2>
 
-    <button id='toggle'>Add to custom deck</button>
-
-    <form action="{{ url_for('update_custom_deck') }}" method="post">
-      <div id='add-cards-dropdown' style="display: none;">
-        <label>Custom Deck:</label>
-        <select id="custom_deck_select" name="custom_deck">
-        {% for cd in custom_decks %}
-          <option value="{{ cd.id }}">{{ cd.deck.name }}</option>
-        {% endfor %}
-        </select>
-        <input type="submit">
-
-      </div>
-
-        {% include 'cards_component.html' %}
-
-    </form>
+    {% include 'cards_component.html' %}
 
 </div>
 {% endblock %}
