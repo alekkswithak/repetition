@@ -2,10 +2,7 @@
 <br>
 <div class="container">
     <h2>Decks</h2>
-        {% for language, decks in language_decks.items() %}
-        {% if language %}
-        <h3>{{ language }}</h3>
-        {% endif %}
+        {% if user_decks %}
         <div class="table-responsive table-hover">
         <table class="table">
         <thead>
@@ -22,13 +19,13 @@
             </tr>
         </thead>
         <tbody>
-            {% for d in decks %}
+            {% for d in user_decks %}
             <tr>
                 <td>{{ d.id }}</td>
                 {% if d.deck.url %}
                 <td><a href="{{ d.deck.url }}">{{ d.deck.name }}</a></td>
                 {% else %}
-                <td>{{ d.deck.name }}</td>
+                <td>{{ d.name }}</td>
                 {% endif %}
                 <td>{{ d.card_total() }}</td>
                 <td>{{ d.to_study_total() }}</td>
@@ -42,6 +39,6 @@
         </tbody>
         </table>
         </div>
-        {% endfor %}
+        {% endif %}
   </div>
 {% endblock %}

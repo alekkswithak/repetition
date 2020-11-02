@@ -116,14 +116,14 @@ def user_decks(user_id):
             ud = UserDeck(user=user)
             ud.populate(deck)
 
-    decks = user.get_decks_json()
+    decks = user.get_decks()
     return render_template(
         'user_decks.html',
         title='My decks',
         url=url,
         form=form,
         user=user,
-        language_decks=decks
+        user_decks=decks
     )
 
 
@@ -187,7 +187,7 @@ def browse_deck(deck_id):
     )
     user = current_user
     #  TODO: Fix this mess:
-    custom_decks = user.get_decks_json(type="custom_deck")
+    custom_decks = user.get_decks(type="custom_deck")
     if custom_decks:
         custom_decks = custom_decks[None]
     return render_template(
@@ -284,13 +284,13 @@ def clip_decks(user_id):
         ud = UserDeck(user=user)
         ud.populate(cd)
 
-    decks = user.get_decks_json(type="clip_deck")
+    decks = user.get_decks(type="clip_deck")
     return render_template(
         'clip_decks.html',
         title='Clip decks',
         form=form,
         user=user,
-        language_decks=decks
+        user_decks=decks
     )
 
 
@@ -315,17 +315,20 @@ def custom_decks(user_id):
     form = CustomDeckForm()
     if form.validate_on_submit():
         name = form.name.data
-        cd = CustomDeck(name=name)
-        ud = UserDeck(user=user)
-        ud.populate(cd)
+        cd = CustomDeck(
+            name=name,
+            user=user
+        )
+        db.session.add(cd)
+        db.session.commit()
 
-    decks = user.get_decks_json(type="custom_deck")
+    decks = CustomDeck.query.filter_by(user=user).all()
     return render_template(
         'custom_decks.html',
         title='Custom decks',
         form=form,
         user=user,
-        language_decks=decks
+        user_decks=decks
     )
 
 

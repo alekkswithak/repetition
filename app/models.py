@@ -34,7 +34,7 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def get_decks_json(self, type=None):
-        decks_json = {}
+        #TODO: unify deck types, better query
         if type is not None:
             decks = [
                 d for d in self.decks
@@ -43,14 +43,8 @@ class User(UserMixin, db.Model):
             ]
         else:
             decks = self.decks
-        for d in decks:
-            if d.deck is None:
-                continue
-            if d.deck.language in decks_json:
-                decks_json[d.deck.language].append(d)
-            else:
-                decks_json[d.deck.language] = [d]
-        return decks_json
+
+        return decks
 
 
 @login.user_loader
@@ -111,6 +105,7 @@ class UserCard(db.Model):
 class UserDeck(db.Model):
     __tablename__ = 'user_deck'
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
     card_number = db.Column(db.Integer, default=20)  # old/init cards per go
     new_card_number = db.Column(db.Integer, default=10)  # new cards per go
     card_counter = db.Column(db.Integer, default=0)
@@ -143,6 +138,7 @@ class UserDeck(db.Model):
 
     def populate(self, deck):
         self.deck = deck
+        self.name = deck.name
         for c in deck.cards:
             self.cards.append(
                 UserCard(card=c)
