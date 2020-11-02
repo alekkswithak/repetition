@@ -33,7 +33,7 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def get_decks_json(self, type=None):
+    def get_decks(self, type=None):
         #TODO: unify deck types, better query
         if type is not None:
             decks = [
@@ -43,7 +43,6 @@ class User(UserMixin, db.Model):
             ]
         else:
             decks = self.decks
-
         return decks
 
 
@@ -100,6 +99,12 @@ class UserCard(db.Model):
             self.ease = 1
         self.priority = True
         self.last_time = datetime.now()
+
+    def get_questions(self):
+        return self.card.get_questions()
+
+    def get_answers(self):
+        return self.card.get_answers()
 
 
 class UserDeck(db.Model):
@@ -251,9 +256,9 @@ class UserDeck(db.Model):
         cards = defaultdict(list)
         for c in self.cards:
             if c.to_study:
-                cards[1].append(c.card)
+                cards[1].append(c)
             else:
-                cards[2].append(c.card)
+                cards[2].append(c)
         return cards
 
     def seen_total(self):

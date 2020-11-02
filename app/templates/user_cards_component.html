@@ -5,9 +5,9 @@
 <form action="{{ url_for('update_custom_deck') }}" method="post">
   <div id='add-cards-dropdown' style="display: none;">
     <label>Custom Deck:</label>
-    <select id="custom_deck_select" name="custom_deck">
+    <select id="custom_deck_select" name="custom-deck">
     {% for cd in custom_decks %}
-      <option value="{{ cd.id }}">{{ cd.deck.name }}</option>
+      <option value="{{ cd.id }}">{{ cd.name }}</option>
     {% endfor %}
     </select>
     <input type="submit">

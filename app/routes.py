@@ -25,6 +25,7 @@ from app.models import (
     User,
     ArticleDeck,
     CustomDeck,
+    UserCard,
 )
 from app.helpers import (
     get_scraper,
@@ -156,11 +157,15 @@ def articles():
 def browse_user_deck(id):
     ud = UserDeck.query.get(id)
     cards = ud.get_display_cards()
+    custom_decks = CustomDeck.query.filter_by(
+        user=current_user
+    ).all()
     return render_template(
         'browse_user_deck.html',
         deck=ud,
         user_cards=cards,
-        user=current_user
+        user=current_user,
+        custom_decks=custom_decks,
         )
 
 
@@ -187,9 +192,7 @@ def browse_deck(deck_id):
     )
     user = current_user
     #  TODO: Fix this mess:
-    custom_decks = user.get_decks(type="custom_deck")
-    if custom_decks:
-        custom_decks = custom_decks[None]
+    custom_decks = CustomDeck.query.filter_by(user=user).all()
     return render_template(
         template,
         deck=deck,
@@ -338,4 +341,9 @@ def update_custom_deck():
         int(request.form.get('custom-deck'))
     )
     card_ids = request.form.getlist('card-id')
-    breakpoint()
+    for id in card_ids:
+        cd.cards.append(
+            UserCard.query.get(int(id))
+        )
+    db.session.commit()
+    return redirect(url_for('browse_user_deck', id=cd.id))
