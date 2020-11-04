@@ -156,13 +156,19 @@ def articles():
 @app.route('/user-deck/<int:id>')
 def browse_user_deck(id):
     ud = UserDeck.query.get(id)
+    if ud.type == "custom_deck":
+        template = 'browse_user_deck.html'
+    elif ud.deck.type == "clip_deck":
+        template = 'browse_clip_deck.html'
+    else:
+        template = 'browse_user_deck.html'
     cards = ud.get_display_cards()
     custom_decks = CustomDeck.query.filter_by(
         user=current_user
     ).all()
     return render_template(
-        'browse_user_deck.html',
-        deck=ud,
+        template,
+        deck=ud.deck,
         user_cards=cards,
         user=current_user,
         custom_decks=custom_decks,
@@ -172,10 +178,6 @@ def browse_user_deck(id):
 @app.route('/deck/<int:deck_id>')
 def browse_deck(deck_id):
     deck = Deck.query.get(deck_id)
-    if deck.type == "clip_deck":
-        template = 'browse_clip_deck.html'
-    else:
-        template = 'browse_deck.html'
     cards = sorted(
         [
             c for c in deck.cards
@@ -194,7 +196,7 @@ def browse_deck(deck_id):
     #  TODO: Fix this mess:
     custom_decks = CustomDeck.query.filter_by(user=user).all()
     return render_template(
-        template,
+        "browse_deck.html",
         deck=deck,
         cards=cards,
         user=user,

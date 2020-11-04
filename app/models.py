@@ -275,7 +275,7 @@ class CustomDeck(UserDeck):
     language = db.Column(db.String(32))
 
     __mapper_args__ = {
-        'polymorphic_identity': 'language_deck',
+        'polymorphic_identity': 'custom_deck',
     }
 
 
