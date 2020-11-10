@@ -330,6 +330,66 @@ class Word(Card):
         return
 
 
+class Character(Card):
+    __tablename__ = 'character'
+    id = db.Column(db.Integer, db.ForeignKey('card.id'), primary_key=True)
+    zi_simp = db.Column(db.String(2), index=True)
+    zi_trad = db.Column(db.String(2), index=True)
+    pinyin_number = db.Column(db.String(10), index=True)
+    pinyin_tone = db.Column(db.String(10), index=True)
+    english = db.Column(db.String(160))
+    hsk = db.Column(db.Integer)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'character',
+    }
+
+    def get_questions(self):
+        q = (
+            self.zi_simp,
+            self.zi_trad
+        )
+        return q
+
+    def get_answers(self):
+        pinyin = self.pinyin_tone if self.pinyin_tone else self.pinyin_number
+        a = (
+            pinyin,
+            self.english
+        )
+        return a
+
+
+class Sentence(Card):
+    __tablename__ = 'sentence'
+    id = db.Column(db.Integer, db.ForeignKey('card.id'), primary_key=True)
+    zi_simp = db.Column(db.String(256), index=True)
+    zi_trad = db.Column(db.String(256), index=True)
+    pinyin_number = db.Column(db.String(512), index=True)
+    pinyin_tone = db.Column(db.String(512), index=True)
+    english = db.Column(db.String(512))
+    hsk = db.Column(db.Integer)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'sentence',
+    }
+
+    def get_questions(self):
+        q = (
+            self.zi_simp,
+            self.zi_trad
+        )
+        return q
+
+    def get_answers(self):
+        pinyin = self.pinyin_tone if self.pinyin_tone else self.pinyin_number
+        a = (
+            pinyin,
+            self.english
+        )
+        return a
+
+
 class ArticleWord(Card):
     __tablename__ = 'article_word'
     id = db.Column(db.Integer, db.ForeignKey('card.id'), primary_key=True)

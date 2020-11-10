@@ -1,6 +1,6 @@
 import logging
 import os
-from logging import RotatingFileHandler
+from logging.handlers import RotatingFileHandler
 from flask import Flask
 from flask_login import LoginManager
 from config import Config
