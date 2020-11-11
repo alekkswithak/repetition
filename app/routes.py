@@ -23,6 +23,7 @@ from app.models import (
     Deck,
     UserDeck,
     User,
+    UserCard,
     ArticleDeck,
     CustomDeck,
     UserCard,
@@ -309,6 +310,24 @@ def words():
     return render_template(
         'words.html',
         title='Words',
+        cards=words,
+        user=current_user,
+    )
+
+
+@app.route('/user-words/<int:user_id>')
+def user_words(user_id):
+    words = sorted(
+        [w for w in UserCard.query.filter_by(
+            user=current_user,
+            type='word'
+        ) if w.frequency],
+        key=lambda w: w.frequency,
+        reverse=True
+    )
+    return render_template(
+        'words.html',
+        title='User Words',
         cards=words,
         user=current_user,
     )
