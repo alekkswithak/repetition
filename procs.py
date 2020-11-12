@@ -11,6 +11,7 @@ from app.models import (
     LanguageDeck,
     UserDeck,
     ArticleDeck,
+    Sentence
 )
 from app.helpers import DeckMaker
 
@@ -96,9 +97,32 @@ def read_hsk():
     db.session.commit()
 
 
+def read_chinese_sentences():
+    """
+    Reads sentences from txt and creates Sentence objects
+    """
+    location = os.path.join(os.getcwd(), 'files')
+    with open(os.path.join(location, 'sentences.txt'), encoding='utf-8') as f:
+        raw = f.read()
+        lines = raw.split('\n')
+        structures = set(len(l.split('\t')) for l in lines)
+        assert len(structures) == 1
+        for l in lines:
+            data = l.split('\t')
+            fields = {
+                'zi_simp': get_chinese(data[0]),
+                'pinyin_tone': data[1],
+                'english': data[2],
+            }
+            s = Sentence(**fields)
+            db.session.add(s)
+    db.session.commit()
+
+
 def read_all_chinese():
     read_chinese_dictionary()
     read_hsk()
+    read_chinese_sentences()
 
 
 def make_decks():
@@ -123,12 +147,22 @@ def make_chinese_decks():
         )
         for n in range(1, 7)
     }
+    decks['sentences'] = LanguageDeck(
+        name='HSK Sentences',
+        language='Chinese'
+    )
 
     for w in words:
         decks[w.hsk].cards.append(w)
+
+    sentences = Sentence.query.all()
+    for s in sentences:
+        decks['sentences'].cards.append(s)
+
     for _, d in decks.items():
         db.session.add(d)
     db.session.commit()
+
     return decks
 
 
